@@ -727,6 +727,57 @@
   /* Scrollable table wrapper for admin */
   .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+  /* ── RULES PAGE ── */
+  .rules-team-card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .rules-team-badge {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .rules-team-name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
+  .rules-team-nick { font-size: 0.65rem; color: var(--text-secondary); }
+  .rules-table {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .rules-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--navy-border);
+    font-size: 0.78rem;
+    gap: 8px;
+  }
+  .rules-row.rules-subheader {
+    background: var(--navy);
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .rules-row.rules-sub { padding-left: 20px; }
+  .rules-label { color: var(--text-secondary); flex: 1; }
+  .rules-val { font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+  .rules-gold { color: var(--gold) !important; }
+  .rules-pts-pos {
+    font-family: 'DM Mono', monospace;
+    font-weight: 700; color: var(--green);
+    white-space: nowrap; min-width: 36px; text-align: right;
+  }
+  .rules-pts-neg {
+    font-family: 'DM Mono', monospace;
+    font-weight: 700; color: #ff5555;
+    white-space: nowrap; min-width: 36px; text-align: right;
+  }
+
   /* ── RESPONSIVE ── */
   @media (min-width: 600px) {
     .topbar { padding: 0 24px; }
@@ -793,6 +844,12 @@
     <button class="nav-tab" onclick="showPage('leaderboard')" id="tab-leaderboard">
       <span class="tab-icon">🏆</span>Standings
     </button>
+    <button class="nav-tab" onclick="showPage('rules')" id="tab-rules">
+      <span class="tab-icon">📋</span>Rules
+    </button>
+    <button class="nav-tab" onclick="showPage('rules')" id="tab-rules">
+      <span class="tab-icon">📋</span>Rules
+    </button>
     <button class="nav-tab admin-only" onclick="showPage('admin')" id="tab-admin" style="display:none;">
       <span class="tab-icon">🛠</span>Admin
     </button>
@@ -828,7 +885,7 @@
         <div class="role-counter" id="rc-WK">
           <div class="rc-label">WK</div>
           <div class="rc-val" id="rc-WK-val">0</div>
-          <div class="rc-label">1 or 2</div>
+          <div class="rc-label">need 1</div>
         </div>
         <div class="role-counter" id="rc-BAT">
           <div class="rc-label">BAT</div>
@@ -896,6 +953,111 @@
     </div>
   </div>
 
+  <!-- RULES PAGE -->
+  <div class="page" id="page-rules">
+
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="font-size:2rem;">🏏</div>
+      <div>
+        <div style="font-size:1.1rem;font-weight:700;">Scoring Guide</div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);">Amgele Premier League · IPL 2026</div>
+      </div>
+    </div>
+
+    <div class="section-title">10 Teams</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#FDB913;"><span style="color:#1A2B6B;font-weight:800;font-size:0.7rem;">CSK</span></div><div><div class="rules-team-name">Chennai Super Kings</div><div class="rules-team-nick">Yellow Army</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#004BA0;"><span style="color:#D4AF37;font-weight:800;font-size:0.7rem;">MI</span></div><div><div class="rules-team-name">Mumbai Indians</div><div class="rules-team-nick">Paltan</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#EC1C24;"><span style="color:#fff;font-weight:800;font-size:0.7rem;">RCB</span></div><div><div class="rules-team-name">Royal Challengers</div><div class="rules-team-nick">Bengaluru</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#3A225D;"><span style="color:#F6B800;font-weight:800;font-size:0.7rem;">KKR</span></div><div><div class="rules-team-name">Kolkata Knight Riders</div><div class="rules-team-nick">Knight Riders</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#0057A8;"><span style="color:#EF1C25;font-weight:800;font-size:0.7rem;">DC</span></div><div><div class="rules-team-name">Delhi Capitals</div><div class="rules-team-nick">Capital Punishers</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#1C3373;"><span style="color:#D4AF37;font-weight:800;font-size:0.7rem;">GT</span></div><div><div class="rules-team-name">Gujarat Titans</div><div class="rules-team-nick">Titans</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#002E6D;"><span style="color:#A8CCEB;font-weight:800;font-size:0.7rem;">LSG</span></div><div><div class="rules-team-name">Lucknow Super Giants</div><div class="rules-team-nick">Super Giants</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#ED1B24;"><span style="color:#fff;font-weight:800;font-size:0.65rem;">PBKS</span></div><div><div class="rules-team-name">Punjab Kings</div><div class="rules-team-nick">Sher-e-Punjab</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#EA1A85;"><span style="color:#fff;font-weight:800;font-size:0.7rem;">RR</span></div><div><div class="rules-team-name">Rajasthan Royals</div><div class="rules-team-nick">Royals</div></div></div>
+      <div class="rules-team-card"><div class="rules-team-badge" style="background:#F7A721;"><span style="color:#E6210C;font-weight:800;font-size:0.7rem;">SRH</span></div><div><div class="rules-team-name">Sunrisers Hyderabad</div><div class="rules-team-nick">Sunrisers</div></div></div>
+    </div>
+
+    <div class="section-title">Team Selection Rules</div>
+    <div class="rules-table" style="margin-bottom:20px;">
+      <div class="rules-row"><span class="rules-label">Total players</span><span class="rules-val">Exactly 11</span></div>
+      <div class="rules-row"><span class="rules-label">Wicket-keeper</span><span class="rules-val">1 or 2</span></div>
+      <div class="rules-row"><span class="rules-label">Batsmen (incl. all-rounders)</span><span class="rules-val">Min 3</span></div>
+      <div class="rules-row"><span class="rules-label">Bowlers (incl. all-rounders)</span><span class="rules-val">Min 3</span></div>
+      <div class="rules-row"><span class="rules-label">All-rounders</span><span class="rules-val">Min 1</span></div>
+      <div class="rules-row"><span class="rules-label">Max from one IPL team</span><span class="rules-val">7</span></div>
+      <div class="rules-row" style="border:none;"><span class="rules-label">Captain / Vice-captain</span><span class="rules-val rules-gold">2× / 1.5× total pts</span></div>
+    </div>
+
+    <div class="section-title">🏏 Batting Points</div>
+    <div class="rules-table" style="margin-bottom:20px;">
+      <div class="rules-row"><span class="rules-label">Each run scored</span><span class="rules-pts-pos">+1</span></div>
+      <div class="rules-row"><span class="rules-label">Four hit (boundary bonus)</span><span class="rules-pts-pos">+1</span></div>
+      <div class="rules-row"><span class="rules-label">Six hit (bonus)</span><span class="rules-pts-pos">+2</span></div>
+      <div class="rules-row"><span class="rules-label">Half century (50+ runs)</span><span class="rules-pts-pos">+8</span></div>
+      <div class="rules-row"><span class="rules-label">Century (100+ runs) — stacks with fifty</span><span class="rules-pts-pos">+16</span></div>
+      <div class="rules-row"><span class="rules-label">Duck — non-bowlers only</span><span class="rules-pts-neg">−2</span></div>
+      <div class="rules-row rules-subheader"><span>Strike rate — min 10 balls faced</span></div>
+      <div class="rules-row rules-sub"><span class="rules-label">SR above 170</span><span class="rules-pts-pos">+6</span></div>
+      <div class="rules-row rules-sub"><span class="rules-label">SR 150.01 – 170</span><span class="rules-pts-pos">+4</span></div>
+      <div class="rules-row rules-sub"><span class="rules-label">SR 130 – 150</span><span class="rules-pts-pos">+2</span></div>
+      <div class="rules-row rules-sub" style="border:none;"><span class="rules-label">SR below 60</span><span class="rules-pts-neg">−6</span></div>
+    </div>
+
+    <div class="section-title">🎯 Bowling Points</div>
+    <div class="rules-table" style="margin-bottom:20px;">
+      <div class="rules-row"><span class="rules-label">Wicket (excl. run out)</span><span class="rules-pts-pos">+25</span></div>
+      <div class="rules-row"><span class="rules-label">Bowled or LBW bonus</span><span class="rules-pts-pos">+8</span></div>
+      <div class="rules-row"><span class="rules-label">3-wicket haul bonus</span><span class="rules-pts-pos">+4</span></div>
+      <div class="rules-row"><span class="rules-label">4-wicket haul bonus — stacks</span><span class="rules-pts-pos">+8</span></div>
+      <div class="rules-row"><span class="rules-label">5-wicket haul bonus — stacks</span><span class="rules-pts-pos">+16</span></div>
+      <div class="rules-row"><span class="rules-label">Maiden over</span><span class="rules-pts-pos">+12</span></div>
+      <div class="rules-row rules-subheader"><span>Economy rate — min 2 overs</span></div>
+      <div class="rules-row rules-sub"><span class="rules-label">ER below 5</span><span class="rules-pts-pos">+6</span></div>
+      <div class="rules-row rules-sub"><span class="rules-label">ER 5 – 5.99</span><span class="rules-pts-pos">+4</span></div>
+      <div class="rules-row rules-sub"><span class="rules-label">ER 6 – 7</span><span class="rules-pts-pos">+2</span></div>
+      <div class="rules-row rules-sub" style="border:none;"><span class="rules-label">ER above 11</span><span class="rules-pts-neg">−6</span></div>
+    </div>
+
+    <div class="section-title">🧤 Fielding Points</div>
+    <div class="rules-table" style="margin-bottom:20px;">
+      <div class="rules-row"><span class="rules-label">Catch</span><span class="rules-pts-pos">+8</span></div>
+      <div class="rules-row"><span class="rules-label">3-catch bonus</span><span class="rules-pts-pos">+4</span></div>
+      <div class="rules-row"><span class="rules-label">Stumping</span><span class="rules-pts-pos">+12</span></div>
+      <div class="rules-row"><span class="rules-label">Run out — direct hit</span><span class="rules-pts-pos">+12</span></div>
+      <div class="rules-row" style="border:none;"><span class="rules-label">Run out — assist (both players)</span><span class="rules-pts-pos">+6 each</span></div>
+    </div>
+
+    <div class="section-title">Example Score</div>
+    <div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--navy-border);">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--saffron-dim);border:1px solid var(--saffron);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.75rem;color:var(--saffron);">JB</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:0.95rem;">Jasprit Bumrah</div>
+          <div style="font-size:0.72rem;color:var(--text-secondary);">Mumbai Indians · Bowler · Vice-captain</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:1.6rem;font-weight:700;color:var(--green);font-family:'DM Mono',monospace;">169.5</div>
+          <div style="font-size:0.65rem;color:var(--text-dim);">final pts</div>
+        </div>
+      </div>
+      <div style="font-size:0.78rem;">
+        <div class="rules-row"><span class="rules-label">3 wickets × 25</span><span class="rules-pts-pos">+75</span></div>
+        <div class="rules-row"><span class="rules-label">1 LBW bonus × 8</span><span class="rules-pts-pos">+8</span></div>
+        <div class="rules-row"><span class="rules-label">3-wicket haul bonus</span><span class="rules-pts-pos">+4</span></div>
+        <div class="rules-row"><span class="rules-label">1 maiden over</span><span class="rules-pts-pos">+12</span></div>
+        <div class="rules-row"><span class="rules-label">Economy 4.8 (below 5)</span><span class="rules-pts-pos">+6</span></div>
+        <div class="rules-row"><span class="rules-label">1 catch</span><span class="rules-pts-pos">+8</span></div>
+        <div class="rules-row" style="border-top:1px solid var(--navy-border);margin-top:4px;padding-top:8px;"><span class="rules-label" style="color:var(--text-primary);font-weight:600;">Base total</span><span style="font-weight:700;font-family:'DM Mono',monospace;">113 pts</span></div>
+        <div class="rules-row" style="border:none;"><span class="rules-label">Vice-captain × 1.5</span><span style="font-weight:700;color:var(--green);font-family:'DM Mono',monospace;">= 169.5 pts</span></div>
+      </div>
+    </div>
+    <div style="font-size:0.72rem;color:var(--text-dim);text-align:center;padding:8px 0 24px;">
+      Fifty + century bonuses stack · Wicket haul bonuses stack · Captain = 2× · VC = 1.5×
+    </div>
+
+  </div>
+
   <!-- ADMIN PAGE -->
   <div class="page" id="page-admin">
     <div class="section-title">Enter Match Stats</div>
@@ -913,7 +1075,7 @@
 // ============================================================
 // CONFIG — paste your Apps Script Web App URL here
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzDmXvmNs3ubByh_wLn0KRCS5fJGwn4Um7om4mIbLLF8vjHNL5TCDsYnfgffmOdMUFK/exec';
+const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 // ============================================================
 // STATE
@@ -1331,7 +1493,7 @@ function updateRoleCounters() {
   });
 
   const rules = {
-    WK:   { val: counts.WK,   ok: counts.WK >= 1 && counts.WK <= 2,   warn: false },
+    WK:   { val: counts.WK,   ok: counts.WK === 1,                    warn: false },
     BAT:  { val: counts.BAT,  ok: counts.BAT + counts.ALL >= 3,        warn: counts.BAT + counts.ALL >= 3 && counts.BAT + counts.ALL < 4 },
     BOWL: { val: counts.BOWL, ok: counts.BOWL + counts.ALL >= 3,       warn: counts.BOWL + counts.ALL >= 3 && counts.BOWL + counts.ALL < 4 },
     ALL:  { val: counts.ALL,  ok: counts.ALL >= 1,                     warn: false },
@@ -1359,7 +1521,7 @@ function validateTeamClient() {
     if (teamCounts[p.iplTeam] > 7) return 'Max 7 players from one IPL team.';
   }
   if (state.selected.length !== 11) return 'Select exactly 11 players.';
-  if (counts.WK < 1 || counts.WK > 2) return 'Select 1 or 2 wicket-keepers.';
+  if (counts.WK !== 1) return 'Select exactly 1 wicket-keeper.';
   if (counts.BAT + counts.ALL < 3) return 'Need at least 3 batsmen (including all-rounders).';
   if (counts.BOWL + counts.ALL < 3) return 'Need at least 3 bowlers (including all-rounders).';
   if (counts.ALL < 1) return 'Need at least 1 all-rounder.';
