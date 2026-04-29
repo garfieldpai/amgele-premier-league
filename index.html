@@ -1521,7 +1521,7 @@ function validateTeamClient() {
     if (teamCounts[p.iplTeam] > 7) return 'Max 7 players from one IPL team.';
   }
   if (state.selected.length !== 11) return 'Select exactly 11 players.';
-  if (wk < 1 || wk > 2) throw new Error('Select 1 or 2 wicket-keepers');
+  if (counts.WK < 1 || counts.WK > 2) throw new Error('Select 1 or 2 wicket-keepers');
   if (counts.BAT + counts.ALL < 3) return 'Need at least 3 batsmen (including all-rounders).';
   if (counts.BOWL + counts.ALL < 3) return 'Need at least 3 bowlers (including all-rounders).';
   if (counts.ALL < 1) return 'Need at least 1 all-rounder.';
