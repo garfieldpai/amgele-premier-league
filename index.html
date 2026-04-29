@@ -828,7 +828,7 @@
         <div class="role-counter" id="rc-WK">
           <div class="rc-label">WK</div>
           <div class="rc-val" id="rc-WK-val">0</div>
-          <div class="rc-label">need 1</div>
+          <div class="rc-label">1 or 2</div>
         </div>
         <div class="role-counter" id="rc-BAT">
           <div class="rc-label">BAT</div>
@@ -1331,7 +1331,7 @@ function updateRoleCounters() {
   });
 
   const rules = {
-    WK:   { val: counts.WK,   ok: counts.WK === 1,                    warn: false },
+    WK:   { val: counts.WK,   ok: counts.WK >= 1 && counts.WK <= 2,   warn: false },
     BAT:  { val: counts.BAT,  ok: counts.BAT + counts.ALL >= 3,        warn: counts.BAT + counts.ALL >= 3 && counts.BAT + counts.ALL < 4 },
     BOWL: { val: counts.BOWL, ok: counts.BOWL + counts.ALL >= 3,       warn: counts.BOWL + counts.ALL >= 3 && counts.BOWL + counts.ALL < 4 },
     ALL:  { val: counts.ALL,  ok: counts.ALL >= 1,                     warn: false },
@@ -1359,7 +1359,7 @@ function validateTeamClient() {
     if (teamCounts[p.iplTeam] > 7) return 'Max 7 players from one IPL team.';
   }
   if (state.selected.length !== 11) return 'Select exactly 11 players.';
-  if (counts.WK !== 1) return 'Select exactly 1 wicket-keeper.';
+  if (counts.WK < 1 || counts.WK > 2) return 'Select 1 or 2 wicket-keepers.';
   if (counts.BAT + counts.ALL < 3) return 'Need at least 3 batsmen (including all-rounders).';
   if (counts.BOWL + counts.ALL < 3) return 'Need at least 3 bowlers (including all-rounders).';
   if (counts.ALL < 1) return 'Need at least 1 all-rounder.';
