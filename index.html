@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Amgele Premier League</title>
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Sanskrit:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --saffron: #FF6B00;
+    --saffron-light: #FF8C33;
+    --saffron-dim: rgba(255,107,0,0.12);
+    --green: #00A550;
+    --green-dim: rgba(0,165,80,0.12);
+    --navy: #0A0F1E;
+    --navy-mid: #111827;
+    --navy-card: #161D30;
+    --navy-border: #1E2A42;
+    --text-primary: #F0F4FF;
+    --text-secondary: #8A97B0;
+    --text-dim: #4A566A;
+    --gold: #F5C842;
+    --gold-dim: rgba(245,200,66,0.15);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    --transition: 0.2s ease;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── BACKGROUND TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% -10%, rgba(255,107,0,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 110%, rgba(0,165,80,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--navy);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    gap: 16px;
+  }
+  .loader-logo {
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    font-size: 2.2rem;
+    color: var(--saffron);
+    letter-spacing: 0.02em;
+  }
+  .loader-bar {
+    width: 120px; height: 2px;
+    background: var(--navy-border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loader-bar::after {
+    content: '';
+    display: block;
+    width: 40%;
+    height: 100%;
+    background: var(--saffron);
+    border-radius: 2px;
+    animation: slide 1s ease-in-out infinite alternate;
+  }
+  @keyframes slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+  /* ── APP SHELL ── */
+  #app { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,15,30,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--navy-border);
+    padding: 0 16px;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-brand {
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    font-size: 1.15rem;
+    color: var(--saffron);
+    letter-spacing: 0.01em;
+  }
+  .topbar-brand span { color: var(--text-secondary); font-size: 0.75rem; font-family: 'DM Sans', sans-serif; display: block; font-weight: 400; margin-top: -2px; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .user-badge {
+    font-size: 0.75rem; color: var(--text-secondary);
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .user-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+  .btn-logout {
+    background: none; border: none;
+    color: var(--text-dim); cursor: pointer;
+    font-size: 0.8rem; padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: color var(--transition);
+  }
+  .btn-logout:hover { color: var(--saffron); }
+
+  /* ── NAV TABS ── */
+  .nav-tabs {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--navy-border);
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab {
+    flex: 1; min-width: 72px;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    border: none; background: none;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition);
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+  .nav-tab.active { color: var(--saffron); border-bottom-color: var(--saffron); }
+  .nav-tab .tab-icon { font-size: 1.1rem; display: block; margin-bottom: 2px; }
+
+  /* ── PAGE CONTENT ── */
+  .page { display: none; flex: 1; padding: 16px; max-width: 600px; margin: 0 auto; width: 100%; }
+  .page.active { display: block; }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px;
+    position: relative; z-index: 1;
+  }
+  .login-card {
+    width: 100%; max-width: 380px;
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: var(--shadow);
+  }
+  .login-logo {
+    text-align: center; margin-bottom: 28px;
+  }
+  .login-logo h1 {
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    font-size: 1.8rem;
+    color: var(--saffron);
+    margin-bottom: 4px;
+  }
+  .login-logo p { color: var(--text-secondary); font-size: 0.85rem; }
+  .login-logo .trophy { font-size: 2.5rem; margin-bottom: 12px; }
+
+  /* ── FORM ELEMENTS ── */
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block; font-size: 0.75rem;
+    font-weight: 600; color: var(--text-secondary);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .form-input {
+    width: 100%; padding: 12px 14px;
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color var(--transition);
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .form-input:focus { border-color: var(--saffron); }
+  .form-input::placeholder { color: var(--text-dim); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer; border: none;
+    transition: all var(--transition);
+    width: 100%;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary {
+    background: var(--saffron);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--saffron-light); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-secondary {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    color: var(--text-primary);
+  }
+  .btn-secondary:hover { border-color: var(--saffron); color: var(--saffron); }
+  .btn-green { background: var(--green); color: #fff; }
+  .btn-green:hover { background: #00c060; }
+  .btn-sm { padding: 7px 14px; font-size: 0.8rem; width: auto; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .card-title { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); }
+  .card-sub { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+
+  /* ── MATCH CARD ── */
+  .match-card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .match-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--navy-border);
+    transition: background var(--transition);
+  }
+  .match-card:hover { border-color: var(--saffron); transform: translateX(2px); }
+  .match-card:hover::before { background: var(--saffron); }
+  .match-card.has-team::before { background: var(--green); }
+  .match-card.locked::before { background: var(--gold); }
+  .match-card.completed { opacity: 0.6; cursor: default; }
+  .match-card.completed:hover { transform: none; border-color: var(--navy-border); }
+
+  .match-teams {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .match-team { font-size: 0.95rem; font-weight: 600; }
+  .match-vs {
+    font-size: 0.7rem; color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    padding: 0 8px;
+  }
+  .match-meta {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .match-info { font-size: 0.72rem; color: var(--text-secondary); }
+  .match-badge {
+    font-size: 0.65rem; font-weight: 600;
+    padding: 3px 8px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .badge-upcoming { background: var(--saffron-dim); color: var(--saffron); }
+  .badge-locked { background: var(--gold-dim); color: var(--gold); }
+  .badge-completed { background: var(--navy-border); color: var(--text-dim); }
+  .badge-team { background: var(--green-dim); color: var(--green); }
+
+  .lock-countdown {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--gold);
+    margin-top: 4px;
+  }
+
+  /* ── SECTION HEADERS ── */
+  .section-title {
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-dim);
+    margin: 20px 0 10px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--navy-border);
+  }
+
+  /* ── TEAM PICKER ── */
+  .picker-header {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .picker-match-title { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .picker-lock-info { font-size: 0.75rem; color: var(--text-secondary); }
+
+  .picker-slots {
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  .slot-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.8rem; font-weight: 500;
+    color: var(--saffron);
+  }
+  .slot-counter span { color: var(--text-dim); font-size: 1rem; }
+  .slot-label { font-size: 0.8rem; color: var(--text-secondary); }
+
+  .role-counters {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 6px; margin-bottom: 14px;
+  }
+  .role-counter {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm);
+    padding: 8px 6px;
+    text-align: center;
+  }
+  .role-counter .rc-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .role-counter .rc-val { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); font-family: 'DM Mono', monospace; }
+  .role-counter.ok .rc-val { color: var(--green); }
+  .role-counter.warn .rc-val { color: var(--gold); }
+  .role-counter.err .rc-val { color: #ff4444; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex; gap: 6px;
+    margin-bottom: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+  .filter-pill {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--navy-border);
+    background: var(--navy-card);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    transition: all var(--transition);
+    flex-shrink: 0;
+  }
+  .filter-pill.active { background: var(--saffron); border-color: var(--saffron); color: #fff; }
+
+  /* Player list */
+  .player-list { display: flex; flex-direction: column; gap: 6px; }
+  .player-row {
+    display: flex; align-items: center;
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all var(--transition);
+    gap: 10px;
+    position: relative;
+  }
+  .player-row:hover { border-color: var(--saffron); }
+  .player-row.selected {
+    border-color: var(--green);
+    background: rgba(0,165,80,0.05);
+  }
+  .player-row.captain { border-color: var(--gold); background: rgba(245,200,66,0.05); }
+  .player-row.vice-captain { border-color: #b8a0ff; background: rgba(184,160,255,0.05); }
+  .player-row.disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+  .player-role-badge {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+  }
+  .role-WK { background: rgba(99,179,237,0.15); color: #63b3ed; }
+  .role-BAT { background: rgba(255,107,0,0.15); color: var(--saffron); }
+  .role-BOWL { background: rgba(0,165,80,0.15); color: var(--green); }
+  .role-ALL { background: rgba(245,200,66,0.15); color: var(--gold); }
+
+  .player-info { flex: 1; min-width: 0; }
+  .player-name { font-size: 0.88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .player-team-name { font-size: 0.7rem; color: var(--text-secondary); }
+
+  .player-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .cap-btn {
+    padding: 3px 7px;
+    border-radius: 4px;
+    font-size: 0.6rem; font-weight: 700;
+    border: 1px solid transparent;
+    cursor: pointer;
+    background: var(--navy);
+    transition: all var(--transition);
+    letter-spacing: 0.03em;
+  }
+  .cap-btn.C { color: var(--gold); border-color: var(--gold-dim); }
+  .cap-btn.C.active { background: var(--gold); color: var(--navy); }
+  .cap-btn.VC { color: #b8a0ff; border-color: rgba(184,160,255,0.2); }
+  .cap-btn.VC.active { background: #b8a0ff; color: var(--navy); }
+  .cap-btn:hover { transform: scale(1.05); }
+
+  .selected-check {
+    color: var(--green); font-size: 1rem; flex-shrink: 0;
+  }
+
+  /* Selected players strip */
+  .selected-strip {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    padding: 10px;
+    margin-bottom: 12px;
+    min-height: 52px;
+  }
+  .strip-title { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .strip-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+  .strip-pill {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    color: var(--text-secondary);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .strip-pill.is-captain { border-color: var(--gold); color: var(--gold); }
+  .strip-pill.is-vc { border-color: #b8a0ff; color: #b8a0ff; }
+  .strip-pill-remove { cursor: pointer; color: var(--text-dim); font-size: 0.8rem; line-height: 1; }
+  .strip-pill-remove:hover { color: #ff4444; }
+
+  /* ── LEADERBOARD ── */
+  .lb-match-select {
+    margin-bottom: 14px;
+  }
+  .lb-tabs {
+    display: flex; gap: 6px; margin-bottom: 14px;
+  }
+  .lb-tab {
+    flex: 1; padding: 8px;
+    text-align: center;
+    border-radius: var(--radius-sm);
+    font-size: 0.78rem; font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--navy-border);
+    background: var(--navy-card);
+    color: var(--text-secondary);
+    transition: all var(--transition);
+  }
+  .lb-tab.active { background: var(--saffron); border-color: var(--saffron); color: #fff; }
+
+  .lb-row {
+    display: flex; align-items: center;
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 6px;
+    gap: 12px;
+    transition: all var(--transition);
+  }
+  .lb-row.me { border-color: var(--saffron); background: var(--saffron-dim); }
+  .lb-rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 1rem; font-weight: 700;
+    width: 28px; text-align: center;
+    flex-shrink: 0;
+  }
+  .lb-rank.r1 { color: var(--gold); }
+  .lb-rank.r2 { color: #b8b8b8; }
+  .lb-rank.r3 { color: #cd7f32; }
+  .lb-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+  .lb-points {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--saffron);
+  }
+  .lb-pts-label { font-size: 0.65rem; color: var(--text-dim); }
+
+  /* breakdown toggle */
+  .breakdown-btn {
+    font-size: 0.7rem; color: var(--text-dim);
+    background: none; border: none; cursor: pointer;
+    padding: 0; flex-shrink: 0;
+  }
+  .breakdown-panel {
+    display: none;
+    background: var(--navy);
+    border-top: 1px solid var(--navy-border);
+    margin: 8px -14px -12px;
+    padding: 10px 14px;
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  }
+  .breakdown-panel.open { display: block; }
+  .bd-row {
+    display: flex; justify-content: space-between;
+    font-size: 0.75rem; padding: 3px 0;
+    border-bottom: 1px solid var(--navy-border);
+  }
+  .bd-row:last-child { border-bottom: none; }
+  .bd-label { color: var(--text-secondary); }
+  .bd-pts { font-family: 'DM Mono', monospace; color: var(--text-primary); font-weight: 600; }
+  .bd-multiplier { color: var(--gold); font-size: 0.65rem; margin-left: 4px; }
+
+  /* ── ADMIN PANEL ── */
+  .admin-match-select { margin-bottom: 14px; }
+  .admin-section-title {
+    font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    padding: 10px 14px;
+    background: var(--navy);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border: 1px solid var(--navy-border);
+    border-bottom: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .admin-section-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--saffron); }
+
+  .stats-table {
+    width: 100%; border-collapse: collapse;
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .stats-table thead { background: var(--navy-mid); }
+  .stats-table th {
+    font-size: 0.6rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-dim);
+    padding: 7px 6px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .stats-table th:first-child { text-align: left; padding-left: 12px; }
+  .stats-table td {
+    padding: 6px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--navy-border);
+    vertical-align: middle;
+  }
+  .stats-table td:first-child { text-align: left; padding-left: 12px; }
+  .stats-table tr:last-child td { border-bottom: none; }
+  .stats-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .stat-input {
+    width: 44px; padding: 4px 3px;
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .stat-input:focus { border-color: var(--saffron); }
+  .stat-input.wide { width: 56px; }
+
+  .stat-select {
+    padding: 4px 3px;
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.72rem;
+    outline: none;
+    max-width: 80px;
+  }
+  .stat-select:focus { border-color: var(--saffron); }
+
+  .player-cell { font-size: 0.82rem; font-weight: 600; line-height: 1.2; }
+  .player-cell-team { font-size: 0.65rem; color: var(--text-dim); }
+
+  /* Wicket type repeater */
+  .wkt-types-cell { display: flex; flex-wrap: wrap; gap: 2px; justify-content: center; }
+  .wkt-pill {
+    font-size: 0.6rem; padding: 2px 4px;
+    border-radius: 3px; background: var(--green-dim);
+    color: var(--green); cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .wkt-pill.active { background: var(--green); color: #fff; }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    pointer-events: none;
+  }
+  .toast {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 20px;
+    padding: 10px 18px;
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    box-shadow: var(--shadow);
+    white-space: nowrap;
+    animation: toastIn 0.3s ease;
+    pointer-events: auto;
+  }
+  .toast.success { border-color: var(--green); color: var(--green); }
+  .toast.error { border-color: #ff4444; color: #ff4444; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-dim);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.85rem; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 500;
+    display: flex; align-items: flex-end;
+    justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .modal {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: 20px 20px 0 0;
+    width: 100%; max-width: 600px;
+    padding: 20px;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 4px; background: var(--navy-border); border-radius: 2px; margin: 0 auto 16px; }
+  .modal-title { font-size: 1rem; font-weight: 700; margin-bottom: 16px; }
+
+  /* ── MISC ── */
+  .divider { height: 1px; background: var(--navy-border); margin: 14px 0; }
+  .text-center { text-align: center; }
+  .text-saffron { color: var(--saffron); }
+  .text-green { color: var(--green); }
+  .text-gold { color: var(--gold); }
+  .text-dim { color: var(--text-dim); }
+  .text-sm { font-size: 0.8rem; }
+  .flex { display: flex; }
+  .gap-8 { gap: 8px; }
+  .mt-8 { margin-top: 8px; }
+  .mt-16 { margin-top: 16px; }
+  .mb-8 { margin-bottom: 8px; }
+  .mono { font-family: 'DM Mono', monospace; }
+
+  .error-msg {
+    background: rgba(255,68,68,0.1);
+    border: 1px solid rgba(255,68,68,0.3);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.82rem;
+    color: #ff6666;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.8rem; padding: 6px 0;
+    border-bottom: 1px solid var(--navy-border);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--text-secondary); }
+  .info-val { font-weight: 600; }
+
+  .spinner {
+    display: inline-block; width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Scrollable table wrapper for admin */
+  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* ── RESPONSIVE ── */
+  @media (min-width: 600px) {
+    .topbar { padding: 0 24px; }
+    .page { padding: 20px 24px; }
+    .nav-tab { font-size: 0.78rem; padding: 12px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loader-logo">🏏 APL</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" style="display:none;">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="trophy">🏆</div>
+      <h1>Amgele Premier League</h1>
+      <p>GSB Fantasy Cricket — IPL 2026</p>
+    </div>
+    <div id="login-error" class="error-msg"></div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input type="text" id="login-username" class="form-input" placeholder="your username" autocomplete="username" autocapitalize="none">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">
+      <span id="login-btn-text">Sign In</span>
+    </button>
+    <p class="text-center text-sm text-dim mt-16">Contact your admin to get an account.</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+  <div class="topbar">
+    <div class="topbar-brand">
+      APL
+      <span>Amgele Premier League</span>
+    </div>
+    <div class="topbar-right">
+      <div class="user-badge">
+        <div class="dot"></div>
+        <span id="topbar-username">—</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('fixtures')" id="tab-fixtures">
+      <span class="tab-icon">📅</span>Fixtures
+    </button>
+    <button class="nav-tab" onclick="showPage('pick')" id="tab-pick">
+      <span class="tab-icon">⚡</span>Pick Team
+    </button>
+    <button class="nav-tab" onclick="showPage('leaderboard')" id="tab-leaderboard">
+      <span class="tab-icon">🏆</span>Standings
+    </button>
+    <button class="nav-tab admin-only" onclick="showPage('admin')" id="tab-admin" style="display:none;">
+      <span class="tab-icon">🛠</span>Admin
+    </button>
+  </div>
+
+  <!-- FIXTURES PAGE -->
+  <div class="page active" id="page-fixtures">
+    <div class="section-title">Upcoming Matches</div>
+    <div id="fixtures-upcoming"></div>
+    <div class="section-title" style="margin-top:24px;">Completed</div>
+    <div id="fixtures-completed"></div>
+  </div>
+
+  <!-- PICK TEAM PAGE -->
+  <div class="page" id="page-pick">
+    <div id="pick-select-match">
+      <div class="empty-state">
+        <div class="icon">⚡</div>
+        <p>Select a match from <strong>Fixtures</strong> to pick your team.</p>
+      </div>
+    </div>
+    <div id="pick-content" style="display:none;">
+      <div class="picker-header">
+        <div class="picker-match-title" id="pick-match-title">—</div>
+        <div class="picker-lock-info" id="pick-lock-info">—</div>
+        <div class="flex gap-8 mt-8">
+          <div class="slot-counter"><span id="pick-count">0</span><span>/11</span></div>
+          <div class="slot-label">players selected</div>
+        </div>
+      </div>
+
+      <div class="role-counters">
+        <div class="role-counter" id="rc-WK">
+          <div class="rc-label">WK</div>
+          <div class="rc-val" id="rc-WK-val">0</div>
+          <div class="rc-label">need 1</div>
+        </div>
+        <div class="role-counter" id="rc-BAT">
+          <div class="rc-label">BAT</div>
+          <div class="rc-val" id="rc-BAT-val">0</div>
+          <div class="rc-label">min 3</div>
+        </div>
+        <div class="role-counter" id="rc-BOWL">
+          <div class="rc-label">BOWL</div>
+          <div class="rc-val" id="rc-BOWL-val">0</div>
+          <div class="rc-label">min 3</div>
+        </div>
+        <div class="role-counter" id="rc-ALL">
+          <div class="rc-label">ALL</div>
+          <div class="rc-val" id="rc-ALL-val">0</div>
+          <div class="rc-label">min 1</div>
+        </div>
+      </div>
+
+      <div class="selected-strip">
+        <div class="strip-title">Your XI — tap C/VC to assign captain</div>
+        <div class="strip-pills" id="selected-strip"></div>
+      </div>
+
+      <div id="pick-locked-msg" style="display:none;">
+        <div class="card" style="border-color:var(--gold); background:var(--gold-dim); text-align:center;">
+          <div style="font-size:1.4rem;">🔒</div>
+          <div style="font-weight:700; margin:6px 0;">Match Locked</div>
+          <div class="text-sm text-dim">Team selection is now closed for this match.</div>
+        </div>
+      </div>
+
+      <div id="pick-form">
+        <div class="filter-bar" id="pick-filter-bar">
+          <button class="filter-pill active" onclick="filterPlayers('ALL_ROLES')" id="fp-ALL_ROLES">All</button>
+          <button class="filter-pill" onclick="filterPlayers('WK')" id="fp-WK">🧤 Keeper</button>
+          <button class="filter-pill" onclick="filterPlayers('BAT')" id="fp-BAT">🏏 Batsmen</button>
+          <button class="filter-pill" onclick="filterPlayers('BOWL')" id="fp-BOWL">🎯 Bowlers</button>
+          <button class="filter-pill" onclick="filterPlayers('ALL')" id="fp-ALL">⭐ All-rdrs</button>
+        </div>
+        <div id="pick-team-filters" class="filter-bar"></div>
+        <div class="player-list" id="pick-player-list"></div>
+
+        <div class="mt-16" id="pick-save-area">
+          <button class="btn btn-green" onclick="saveTeam()" id="pick-save-btn">Save Team</button>
+          <p class="text-center text-sm text-dim mt-8" id="pick-save-hint">Pick 11 players with valid composition to save.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD PAGE -->
+  <div class="page" id="page-leaderboard">
+    <div class="lb-tabs">
+      <button class="lb-tab active" onclick="lbMode('match')" id="lb-match-btn">Match</button>
+      <button class="lb-tab" onclick="lbMode('overall')" id="lb-overall-btn">Overall</button>
+    </div>
+    <div id="lb-match-panel">
+      <select class="form-input lb-match-select" id="lb-match-select" onchange="loadLeaderboard()">
+        <option value="">Select a completed match…</option>
+      </select>
+      <div id="lb-match-list"></div>
+    </div>
+    <div id="lb-overall-panel" style="display:none;">
+      <div id="lb-overall-list"></div>
+    </div>
+  </div>
+
+  <!-- ADMIN PAGE -->
+  <div class="page" id="page-admin">
+    <div class="section-title">Enter Match Stats</div>
+    <select class="form-input admin-match-select" id="admin-match-select" onchange="loadAdminMatch()">
+      <option value="">Select a match to score…</option>
+    </select>
+    <div id="admin-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ============================================================
+// CONFIG — paste your Apps Script Web App URL here
+// ============================================================
+const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  user: null,           // { username, isAdmin }
+  matches: [],
+  allPlayers: [],
+  // pick team
+  activePick: null,     // match object
+  pickPool: [],         // players for active match
+  selected: [],         // array of playerIds
+  captain: null,
+  viceCaptain: null,
+  pickFilter: 'ALL_ROLES',
+  pickTeamFilter: null,
+  // leaderboard
+  lbMode: 'match',
+};
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = async () => {
+  const saved = sessionStorage.getItem('apl_user');
+  if (saved) {
+    state.user = JSON.parse(saved);
+    await bootApp();
+  } else {
+    showScreen('login');
+  }
+};
+
+async function bootApp() {
+  showScreen('loading');
+  try {
+    await Promise.all([loadMatches(), loadPlayers()]);
+    renderFixtures();
+    populateLeaderboardSelect();
+    populateAdminSelect();
+    document.getElementById('topbar-username').textContent = state.user.username;
+    if (state.user.isAdmin) {
+      document.getElementById('tab-admin').style.display = '';
+    }
+    showScreen('app');
+    showPage('fixtures');
+  } catch(e) {
+    showScreen('login');
+    showToast('Failed to load data. Check your API URL.', 'error');
+  }
+}
+
+// ============================================================
+// AUTH
+// ============================================================
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn-text');
+  if (!username || !password) { showLoginError('Please enter username and password.'); return; }
+  btn.innerHTML = '<span class="spinner"></span>';
+  errEl.classList.remove('show');
+  try {
+    const res = await post({ action: 'login', username, password });
+    if (!res.success) throw new Error(res.error);
+    state.user = res.data;
+    sessionStorage.setItem('apl_user', JSON.stringify(state.user));
+    await bootApp();
+  } catch(e) {
+    showLoginError(e.message || 'Login failed.');
+    btn.textContent = 'Sign In';
+  }
+}
+
+function doLogout() {
+  sessionStorage.removeItem('apl_user');
+  state.user = null;
+  showScreen('login');
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.classList.add('show');
+  document.getElementById('login-btn-text').textContent = 'Sign In';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') doLogin();
+});
+
+// ============================================================
+// SCREENS & PAGES
+// ============================================================
+function showScreen(name) {
+  document.getElementById('loading').style.display = name === 'loading' ? 'flex' : 'none';
+  document.getElementById('login-screen').style.display = name === 'login' ? 'flex' : 'none';
+  document.getElementById('app').style.display = name === 'app' ? 'flex' : 'none';
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'leaderboard' && state.lbMode === 'overall') loadOverall();
+}
+
+// ============================================================
+// DATA LOADING
+// ============================================================
+async function loadMatches() {
+  const res = await get({ action: 'getMatches' });
+  if (!res.success) throw new Error(res.error);
+  state.matches = res.data;
+}
+
+async function loadPlayers() {
+  // We'll load per-match pools when needed; load all here for admin
+  // For admin stats, we need all players - load from matches lazily
+}
+
+async function getPlayerPool(matchId) {
+  const res = await get({ action: 'getPlayerPool', matchId });
+  if (!res.success) throw new Error(res.error);
+  return res.data;
+}
+
+async function getMySelection(matchId) {
+  const res = await get({ action: 'getSelection', matchId, username: state.user.username });
+  if (!res.success) throw new Error(res.error);
+  return res.data;
+}
+
+// ============================================================
+// FIXTURES
+// ============================================================
+function renderFixtures() {
+  const upcoming = state.matches.filter(m => m.status === 'upcoming');
+  const completed = state.matches.filter(m => m.status === 'completed');
+
+  const upEl = document.getElementById('fixtures-upcoming');
+  const coEl = document.getElementById('fixtures-completed');
+
+  if (upcoming.length === 0) {
+    upEl.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No upcoming matches.</p></div>';
+  } else {
+    upEl.innerHTML = upcoming.map(m => matchCardHTML(m)).join('');
+  }
+
+  if (completed.length === 0) {
+    coEl.innerHTML = '<div class="empty-state"><p>No completed matches yet.</p></div>';
+  } else {
+    coEl.innerHTML = completed.slice(-10).reverse().map(m => matchCardHTML(m, true)).join('');
+  }
+
+  // Start countdown timers
+  upcoming.forEach(m => startCountdown(m));
+}
+
+function matchCardHTML(m, isCompleted = false) {
+  const locked = m.isLocked;
+  const classes = ['match-card'];
+  if (isCompleted) classes.push('completed');
+  if (locked && !isCompleted) classes.push('locked');
+
+  const badge = isCompleted
+    ? '<span class="match-badge badge-completed">Completed</span>'
+    : locked
+      ? '<span class="match-badge badge-locked">🔒 Locked</span>'
+      : '<span class="match-badge badge-upcoming">Open</span>';
+
+  const onClick = isCompleted ? '' : `onclick="openPickForMatch('${m.matchId}')"`;
+
+  return `
+    <div class="${classes.join(' ')}" ${onClick} id="mcard-${m.matchId}">
+      <div class="match-teams">
+        <div class="match-team">${shortTeam(m.teamA)}</div>
+        <div class="match-vs">vs</div>
+        <div class="match-team">${shortTeam(m.teamB)}</div>
+      </div>
+      <div class="match-meta">
+        <div>
+          <div class="match-info">📍 ${shortVenue(m.venue)} · ${formatDate(m.date)}</div>
+          ${!isCompleted && !locked ? `<div class="lock-countdown" id="cd-${m.matchId}">🔒 Locks at ${formatTime(m.lockTime)}</div>` : ''}
+        </div>
+        ${badge}
+      </div>
+    </div>`;
+}
+
+function shortTeam(name) {
+  const abbr = {
+    'Chennai Super Kings': 'CSK',
+    'Delhi Capitals': 'DC',
+    'Gujarat Titans': 'GT',
+    'Kolkata Knight Riders': 'KKR',
+    'Lucknow Super Giants': 'LSG',
+    'Mumbai Indians': 'MI',
+    'Punjab Kings': 'PBKS',
+    'Rajasthan Royals': 'RR',
+    'Royal Challengers Bengaluru': 'RCB',
+    'Sunrisers Hyderabad': 'SRH',
+  };
+  return abbr[name] || name;
+}
+
+function shortVenue(v) {
+  if (!v) return '—';
+  return v.split(' ').slice(0,3).join(' ');
+}
+
+function formatDate(dt) {
+  if (!dt) return '—';
+  const d = new Date(dt);
+  return d.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' })
+    + ' · ' + d.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' CEST';
+}
+
+function formatTime(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) + ' CEST';
+}
+
+function startCountdown(m) {
+  const el = document.getElementById('cd-' + m.matchId);
+  if (!el) return;
+  const lockTime = new Date(m.lockTime);
+  const update = () => {
+    const diff = lockTime - new Date();
+    if (diff <= 0) { el.textContent = '🔒 Locked'; return; }
+    const h = Math.floor(diff / 3600000);
+    const min = Math.floor((diff % 3600000) / 60000);
+    const sec = Math.floor((diff % 60000) / 1000);
+    el.textContent = `🔒 Locks in ${h > 0 ? h + 'h ' : ''}${min}m ${sec}s`;
+    setTimeout(update, 1000);
+  };
+  update();
+}
+
+// ============================================================
+// PICK TEAM
+// ============================================================
+async function openPickForMatch(matchId) {
+  const match = state.matches.find(m => m.matchId === matchId);
+  if (!match) return;
+
+  showPage('pick');
+  document.getElementById('pick-select-match').style.display = 'none';
+  document.getElementById('pick-content').style.display = 'block';
+
+  state.activePick = match;
+  state.selected = [];
+  state.captain = null;
+  state.viceCaptain = null;
+  state.pickFilter = 'ALL_ROLES';
+  state.pickTeamFilter = null;
+
+  document.getElementById('pick-match-title').textContent =
+    `${match.teamA} vs ${match.teamB}`;
+  document.getElementById('pick-lock-info').textContent =
+    `Locks at ${formatTime(match.lockTime)} · ${formatDate(match.date)}`;
+
+  const locked = match.isLocked;
+  document.getElementById('pick-form').style.display = locked ? 'none' : 'block';
+  document.getElementById('pick-locked-msg').style.display = locked ? 'block' : 'none';
+
+  // Load pool
+  showToast('Loading players…');
+  try {
+    state.pickPool = await getPlayerPool(matchId);
+
+    // Build team filter pills
+    const teams = [...new Set(state.pickPool.map(p => p.iplTeam))];
+    const tfBar = document.getElementById('pick-team-filters');
+    tfBar.innerHTML = teams.map(t =>
+      `<button class="filter-pill" onclick="filterTeam('${t}')" id="ft-${t.replace(/\s/g,'_')}">${shortTeam(t)}</button>`
+    ).join('');
+
+    // Load existing selection
+    const sel = await getMySelection(matchId);
+    if (sel) {
+      state.selected = sel.playerIds || [];
+      state.captain = sel.captainId;
+      state.viceCaptain = sel.vcId;
+    }
+
+    renderPickList();
+    updateRoleCounters();
+    renderSelectedStrip();
+    updateSaveBtn();
+  } catch(e) {
+    showToast('Failed to load players: ' + e.message, 'error');
+  }
+}
+
+function filterPlayers(role) {
+  state.pickFilter = role;
+  state.pickTeamFilter = null;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('fp-' + role)?.classList.add('active');
+  renderPickList();
+}
+
+function filterTeam(team) {
+  state.pickTeamFilter = team;
+  state.pickFilter = 'ALL_ROLES';
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  const id = 'ft-' + team.replace(/\s/g, '_');
+  document.getElementById(id)?.classList.add('active');
+  renderPickList();
+}
+
+function renderPickList() {
+  const pool = state.pickPool;
+  let filtered = pool;
+  if (state.pickTeamFilter) {
+    filtered = pool.filter(p => p.iplTeam === state.pickTeamFilter);
+  } else if (state.pickFilter !== 'ALL_ROLES') {
+    filtered = pool.filter(p => p.role === state.pickFilter);
+  }
+
+  const listEl = document.getElementById('pick-player-list');
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="empty-state"><p>No players found.</p></div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(p => {
+    const isSelected = state.selected.includes(p.playerId);
+    const isCap = state.captain === p.playerId;
+    const isVC = state.viceCaptain === p.playerId;
+    const maxReached = state.selected.length >= 11 && !isSelected;
+    const classes = ['player-row'];
+    if (isSelected) classes.push('selected');
+    if (isCap) classes.push('captain');
+    else if (isVC) classes.push('vice-captain');
+    if (maxReached) classes.push('disabled');
+
+    return `
+      <div class="${classes.join(' ')}" onclick="togglePlayer('${p.playerId}')" id="pr-${p.playerId}">
+        <div class="player-role-badge role-${p.role}">${p.role}</div>
+        <div class="player-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-team-name">${p.iplTeam}</div>
+        </div>
+        ${isSelected ? `
+          <div class="player-actions" onclick="event.stopPropagation()">
+            <button class="cap-btn C ${isCap ? 'active' : ''}" onclick="setCaptain('${p.playerId}')">C</button>
+            <button class="cap-btn VC ${isVC ? 'active' : ''}" onclick="setVC('${p.playerId}')">VC</button>
+          </div>
+          <div class="selected-check">✓</div>
+        ` : ''}
+      </div>`;
+  }).join('');
+}
+
+function togglePlayer(playerId) {
+  const idx = state.selected.indexOf(playerId);
+  if (idx === -1) {
+    if (state.selected.length >= 11) { showToast('Already selected 11 players.', 'error'); return; }
+    state.selected.push(playerId);
+  } else {
+    state.selected.splice(idx, 1);
+    if (state.captain === playerId) state.captain = null;
+    if (state.viceCaptain === playerId) state.viceCaptain = null;
+  }
+  renderPickList();
+  renderSelectedStrip();
+  updateRoleCounters();
+  updateSaveBtn();
+}
+
+function setCaptain(playerId) {
+  if (state.viceCaptain === playerId) state.viceCaptain = null;
+  state.captain = state.captain === playerId ? null : playerId;
+  renderPickList();
+  renderSelectedStrip();
+  updateSaveBtn();
+}
+
+function setVC(playerId) {
+  if (state.captain === playerId) state.captain = null;
+  state.viceCaptain = state.viceCaptain === playerId ? null : playerId;
+  renderPickList();
+  renderSelectedStrip();
+  updateSaveBtn();
+}
+
+function renderSelectedStrip() {
+  const strip = document.getElementById('selected-strip');
+  document.getElementById('pick-count').textContent = state.selected.length;
+  if (state.selected.length === 0) { strip.innerHTML = '<span class="text-dim text-sm">No players selected yet</span>'; return; }
+  strip.innerHTML = state.selected.map(pid => {
+    const p = state.pickPool.find(x => x.playerId === pid);
+    if (!p) return '';
+    const isCap = state.captain === pid;
+    const isVC = state.viceCaptain === pid;
+    const cls = isCap ? 'is-captain' : isVC ? 'is-vc' : '';
+    const label = isCap ? ' 👑C' : isVC ? ' ⭐VC' : '';
+    return `<div class="strip-pill ${cls}">
+      ${p.name.split(' ').pop()}${label}
+      <span class="strip-pill-remove" onclick="togglePlayer('${pid}')">×</span>
+    </div>`;
+  }).join('');
+}
+
+function updateRoleCounters() {
+  const counts = { WK:0, BAT:0, BOWL:0, ALL:0 };
+  state.selected.forEach(pid => {
+    const p = state.pickPool.find(x => x.playerId === pid);
+    if (p) counts[p.role]++;
+  });
+
+  const rules = {
+    WK:   { val: counts.WK,   ok: counts.WK === 1,                    warn: false },
+    BAT:  { val: counts.BAT,  ok: counts.BAT + counts.ALL >= 3,        warn: counts.BAT + counts.ALL >= 3 && counts.BAT + counts.ALL < 4 },
+    BOWL: { val: counts.BOWL, ok: counts.BOWL + counts.ALL >= 3,       warn: counts.BOWL + counts.ALL >= 3 && counts.BOWL + counts.ALL < 4 },
+    ALL:  { val: counts.ALL,  ok: counts.ALL >= 1,                     warn: false },
+  };
+
+  Object.entries(rules).forEach(([role, r]) => {
+    const el = document.getElementById('rc-' + role);
+    const valEl = document.getElementById('rc-' + role + '-val');
+    valEl.textContent = r.val;
+    el.className = 'role-counter';
+    if (r.ok) el.classList.add('ok');
+    else if (r.val > 0) el.classList.add('warn');
+    else el.classList.add('err');
+  });
+}
+
+function validateTeamClient() {
+  const counts = { WK:0, BAT:0, BOWL:0, ALL:0 };
+  let teamCounts = {};
+  for (const pid of state.selected) {
+    const p = state.pickPool.find(x => x.playerId === pid);
+    if (!p) return 'Unknown player in selection.';
+    counts[p.role]++;
+    teamCounts[p.iplTeam] = (teamCounts[p.iplTeam] || 0) + 1;
+    if (teamCounts[p.iplTeam] > 7) return 'Max 7 players from one IPL team.';
+  }
+  if (state.selected.length !== 11) return 'Select exactly 11 players.';
+  if (counts.WK !== 1) return 'Select exactly 1 wicket-keeper.';
+  if (counts.BAT + counts.ALL < 3) return 'Need at least 3 batsmen (including all-rounders).';
+  if (counts.BOWL + counts.ALL < 3) return 'Need at least 3 bowlers (including all-rounders).';
+  if (counts.ALL < 1) return 'Need at least 1 all-rounder.';
+  if (!state.captain) return 'Select a captain (C).';
+  if (!state.viceCaptain) return 'Select a vice-captain (VC).';
+  return null;
+}
+
+function updateSaveBtn() {
+  const btn = document.getElementById('pick-save-btn');
+  const hint = document.getElementById('pick-save-hint');
+  const err = validateTeamClient();
+  btn.disabled = !!err;
+  hint.textContent = err || '✅ Team valid — tap Save to confirm.';
+  hint.style.color = err ? 'var(--text-dim)' : 'var(--green)';
+}
+
+async function saveTeam() {
+  const err = validateTeamClient();
+  if (err) { showToast(err, 'error'); return; }
+  const btn = document.getElementById('pick-save-btn');
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+  try {
+    const res = await post({
+      action: 'saveSelection',
+      username: state.user.username,
+      matchId: state.activePick.matchId,
+      playerIds: state.selected,
+      captainId: state.captain,
+      vcId: state.viceCaptain,
+    });
+    if (!res.success) throw new Error(res.error);
+    showToast('Team saved! ✅', 'success');
+    btn.innerHTML = 'Save Team';
+    updateSaveBtn();
+  } catch(e) {
+    showToast(e.message || 'Save failed.', 'error');
+    btn.innerHTML = 'Save Team';
+    btn.disabled = false;
+  }
+}
+
+// ============================================================
+// LEADERBOARD
+// ============================================================
+function populateLeaderboardSelect() {
+  const completed = state.matches.filter(m => m.status === 'completed');
+  const sel = document.getElementById('lb-match-select');
+  sel.innerHTML = '<option value="">Select a completed match…</option>' +
+    completed.map(m => `<option value="${m.matchId}">${shortTeam(m.teamA)} vs ${shortTeam(m.teamB)} · ${formatDate(m.date)}</option>`).join('');
+}
+
+function lbMode(mode) {
+  state.lbMode = mode;
+  document.getElementById('lb-match-panel').style.display = mode === 'match' ? 'block' : 'none';
+  document.getElementById('lb-overall-panel').style.display = mode === 'overall' ? 'block' : 'none';
+  document.getElementById('lb-match-btn').classList.toggle('active', mode === 'match');
+  document.getElementById('lb-overall-btn').classList.toggle('active', mode === 'overall');
+  if (mode === 'overall') loadOverall();
+}
+
+async function loadLeaderboard() {
+  const matchId = document.getElementById('lb-match-select').value;
+  const listEl = document.getElementById('lb-match-list');
+  if (!matchId) { listEl.innerHTML = ''; return; }
+  listEl.innerHTML = '<div class="text-center text-dim text-sm" style="padding:20px">Loading…</div>';
+  try {
+    const res = await get({ action: 'getLeaderboard', matchId });
+    if (!res.success) throw new Error(res.error);
+    const data = res.data;
+    if (data.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>No scores yet for this match.</p></div>';
+      return;
+    }
+    listEl.innerHTML = data.map(r => lbRowHTML(r)).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+  }
+}
+
+async function loadOverall() {
+  const listEl = document.getElementById('lb-overall-list');
+  listEl.innerHTML = '<div class="text-center text-dim text-sm" style="padding:20px">Loading…</div>';
+  try {
+    const res = await get({ action: 'getOverallStandings' });
+    if (!res.success) throw new Error(res.error);
+    const data = res.data;
+    if (data.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Season standings will appear here after matches are scored.</p></div>';
+      return;
+    }
+    listEl.innerHTML = data.map(r => lbRowHTML(r, true)).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+  }
+}
+
+function lbRowHTML(r, isOverall = false) {
+  const isMe = r.username === state.user.username;
+  const rankClass = r.rank === 1 ? 'r1' : r.rank === 2 ? 'r2' : r.rank === 3 ? 'r3' : '';
+  const rankEmoji = r.rank === 1 ? '🥇' : r.rank === 2 ? '🥈' : r.rank === 3 ? '🥉' : r.rank;
+  const bdId = 'bd-' + r.username + '-' + (isOverall ? 'ov' : 'mt');
+
+  let breakdown = '';
+  if (!isOverall && r.breakdown && r.breakdown.length > 0) {
+    breakdown = `
+      <div class="breakdown-panel" id="${bdId}">
+        ${r.breakdown.map(b => {
+          const p = state.pickPool.find ? state.pickPool : [];
+          const mult = b.multiplier > 1 ? `<span class="bd-multiplier">${b.multiplier}×</span>` : '';
+          return `<div class="bd-row">
+            <span class="bd-label">Player ${b.playerId}</span>
+            <span class="bd-pts">${b.basePoints.toFixed(1)} pts${mult} = <strong>${b.finalPoints.toFixed(1)}</strong></span>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  return `
+    <div class="lb-row ${isMe ? 'me' : ''}">
+      <div class="lb-rank ${rankClass}">${rankEmoji}</div>
+      <div class="lb-name">${r.username}${isMe ? ' <span class="text-saffron">(you)</span>' : ''}</div>
+      <div style="text-align:right">
+        <div class="lb-points">${Math.round(r.totalPoints)}</div>
+        <div class="lb-pts-label">pts</div>
+      </div>
+      ${!isOverall && r.breakdown?.length ? `<button class="breakdown-btn" onclick="toggleBreakdown('${bdId}')">▾</button>` : ''}
+    </div>
+    ${breakdown}`;
+}
+
+function toggleBreakdown(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ============================================================
+// ADMIN — MATCH STATS
+// ============================================================
+function populateAdminSelect() {
+  if (!state.user?.isAdmin) return;
+  const sel = document.getElementById('admin-match-select');
+  sel.innerHTML = '<option value="">Select a match to score…</option>' +
+    state.matches
+      .filter(m => !m.status || m.status !== 'upcoming' || m.isLocked)
+      .map(m => `<option value="${m.matchId}">${shortTeam(m.teamA)} vs ${shortTeam(m.teamB)} · ${formatDate(m.date)} [${m.status}]</option>`)
+      .join('');
+  // Actually show all matches so admin can score any
+  sel.innerHTML = '<option value="">Select a match to score…</option>' +
+    state.matches.map(m =>
+      `<option value="${m.matchId}">${shortTeam(m.teamA)} vs ${shortTeam(m.teamB)} · ${formatDate(m.date)} [${m.status}]</option>`
+    ).join('');
+}
+
+async function loadAdminMatch() {
+  const matchId = document.getElementById('admin-match-select').value;
+  const content = document.getElementById('admin-content');
+  if (!matchId) { content.innerHTML = ''; return; }
+
+  const match = state.matches.find(m => m.matchId === matchId);
+  content.innerHTML = '<div class="text-center text-dim text-sm" style="padding:20px">Loading players…</div>';
+
+  try {
+    const pool = await getPlayerPool(matchId);
+
+    // Also try to load existing stats
+    let existingStats = {};
+    try {
+      const sres = await get({ action: 'getMatchStats', matchId });
+      if (sres.success && sres.data) {
+        sres.data.forEach(s => existingStats[s.playerId] = s);
+      }
+    } catch(e) {}
+
+    // Group by team
+    const teamA = pool.filter(p => p.iplTeam === match.teamA);
+    const teamB = pool.filter(p => p.iplTeam === match.teamB);
+
+    content.innerHTML = `
+      <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">
+        Fill in stats from the match scorecard. Leave blank for players who didn't participate.
+        <br><strong style="color:var(--saffron);">Wicket Types:</strong> Click the type buttons for each wicket taken (e.g. 3 wickets = click 3 types).
+      </div>
+      ${adminTeamTable(match.teamA, teamA, existingStats)}
+      ${adminTeamTable(match.teamB, teamB, existingStats)}
+      <div class="mt-16">
+        <button class="btn btn-green" onclick="submitStats('${matchId}')">
+          ✅ Save Stats &amp; Calculate Points
+        </button>
+        <p class="text-center text-sm text-dim mt-8">This will calculate and publish points for all players' teams.</p>
+      </div>
+      <div style="height:40px;"></div>`;
+
+  } catch(e) {
+    content.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+  }
+}
+
+function adminTeamTable(teamName, players, existing) {
+  const rows = players.map(p => {
+    const s = existing[p.playerId] || {};
+    const wkt = parseInt(s.wickets || 0);
+    const wktTypes = s.wicketTypes || [];
+
+    return `
+      <tr id="stat-row-${p.playerId}" data-player-id="${p.playerId}" data-player-name="${p.name}" data-ipl-team="${p.iplTeam}" data-role="${p.role}">
+        <td>
+          <div class="player-cell">${p.name}</div>
+          <div class="player-cell-team"><span class="player-role-badge role-${p.role}" style="display:inline-flex;width:auto;padding:1px 5px;">${p.role}</span></div>
+        </td>
+        <td><input class="stat-input" type="number" min="0" max="200" value="${s.runs||0}" placeholder="0" data-field="runs"></td>
+        <td><input class="stat-input" type="number" min="0" max="200" value="${s.ballsFaced||0}" placeholder="0" data-field="ballsFaced"></td>
+        <td><input class="stat-input" type="number" min="0" max="36" value="${s.fours||0}" placeholder="0" data-field="fours"></td>
+        <td><input class="stat-input" type="number" min="0" max="36" value="${s.sixes||0}" placeholder="0" data-field="sixes"></td>
+        <td>
+          <select class="stat-select" data-field="dismissalType">
+            <option value="" ${!s.isDismissed?'selected':''}>Not out</option>
+            <option value="bowled" ${s.dismissalType==='bowled'?'selected':''}>Bowled</option>
+            <option value="lbw" ${s.dismissalType==='lbw'?'selected':''}>LBW</option>
+            <option value="caught" ${s.dismissalType==='caught'?'selected':''}>Caught</option>
+            <option value="runout" ${s.dismissalType==='runout'?'selected':''}>Run Out</option>
+            <option value="stumped" ${s.dismissalType==='stumped'?'selected':''}>Stumped</option>
+            <option value="hitwicket" ${s.dismissalType==='hitwicket'?'selected':''}>Hit Wicket</option>
+          </select>
+        </td>
+        <td><input class="stat-input" type="number" min="0" max="10" value="${s.wickets||0}" placeholder="0" data-field="wickets" onchange="updateWktTypes(this,'${p.playerId}')"></td>
+        <td>
+          <div class="wkt-types-cell" id="wkt-${p.playerId}">
+            ${renderWktTypeBtns(wkt, wktTypes, p.playerId)}
+          </div>
+        </td>
+        <td><input class="stat-input" type="number" min="0" max="4" value="${s.maidens||0}" placeholder="0" data-field="maidens"></td>
+        <td><input class="stat-input wide" type="number" min="0" max="24" step="0.1" value="${s.oversBowled||0}" placeholder="0" data-field="oversBowled"></td>
+        <td><input class="stat-input wide" type="number" min="0" max="300" value="${s.runsConceded||0}" placeholder="0" data-field="runsConceded"></td>
+        <td><input class="stat-input" type="number" min="0" max="10" value="${s.catches||0}" placeholder="0" data-field="catches"></td>
+        <td><input class="stat-input" type="number" min="0" max="10" value="${s.stumpings||0}" placeholder="0" data-field="stumpings"></td>
+        <td><input class="stat-input" type="number" min="0" max="5" value="${s.runOutDirect||0}" placeholder="0" data-field="runOutDirect"></td>
+        <td><input class="stat-input" type="number" min="0" max="5" value="${s.runOutAssist||0}" placeholder="0" data-field="runOutAssist"></td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <div class="admin-section-title"><div class="dot"></div>${teamName}</div>
+    <div class="table-scroll">
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Runs</th>
+            <th>Balls</th>
+            <th>4s</th>
+            <th>6s</th>
+            <th>Dismissal</th>
+            <th>Wkts</th>
+            <th>Wkt Types</th>
+            <th>Mdns</th>
+            <th>Overs</th>
+            <th>RC</th>
+            <th>Cts</th>
+            <th>Stmp</th>
+            <th>RO Dir</th>
+            <th>RO Ast</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderWktTypeBtns(wickets, selectedTypes, playerId) {
+  const types = ['bowled','lbw','caught','stumped','hitwicket','runout'];
+  if (wickets === 0) return '<span class="text-dim" style="font-size:0.65rem;">—</span>';
+
+  // Build count of each type selected
+  let html = '';
+  // Show one row of type buttons per wicket
+  for (let i = 0; i < wickets; i++) {
+    const chosen = selectedTypes[i] || '';
+    html += `<div style="display:flex;gap:2px;flex-wrap:wrap;justify-content:center;margin-bottom:2px;">` +
+      types.map(t => `<span class="wkt-pill ${chosen===t?'active':''}"
+        onclick="setWktType('${playerId}',${i},'${t}')" data-idx="${i}">${t.slice(0,3).toUpperCase()}</span>`).join('') +
+      `</div>`;
+  }
+  return html;
+}
+
+function updateWktTypes(input, playerId) {
+  const wkt = parseInt(input.value) || 0;
+  const container = document.getElementById('wkt-' + playerId);
+  container.innerHTML = renderWktTypeBtns(wkt, [], playerId);
+}
+
+// Store wicket types in a JS map
+const wktTypeStore = {};
+function setWktType(playerId, idx, type) {
+  if (!wktTypeStore[playerId]) wktTypeStore[playerId] = [];
+  wktTypeStore[playerId][idx] = type;
+  // Update UI - deactivate siblings for same idx
+  const container = document.getElementById('wkt-' + playerId);
+  container.querySelectorAll(`[data-idx="${idx}"]`).forEach(el => {
+    el.classList.toggle('active', el.textContent.toLowerCase() === type.slice(0,3).toLowerCase()
+      || el.getAttribute('onclick').includes(`'${type}'`));
+  });
+  // Re-render
+  const row = document.getElementById('stat-row-' + playerId);
+  const wkt = parseInt(row.querySelector('[data-field="wickets"]').value) || 0;
+  container.innerHTML = renderWktTypeBtns(wkt, wktTypeStore[playerId], playerId);
+}
+
+function collectStats(matchId) {
+  const match = state.matches.find(m => m.matchId === matchId);
+  const stats = [];
+  document.querySelectorAll('[id^="stat-row-"]').forEach(row => {
+    const pid = row.dataset.playerId;
+    const get = (field) => {
+      const el = row.querySelector(`[data-field="${field}"]`);
+      if (!el) return null;
+      if (el.tagName === 'SELECT') return el.value;
+      return parseFloat(el.value) || 0;
+    };
+    const dismissalType = get('dismissalType');
+    stats.push({
+      playerId: pid,
+      playerName: row.dataset.playerName,
+      iplTeam: row.dataset.iplTeam,
+      role: row.dataset.role,
+      runs: get('runs'),
+      ballsFaced: get('ballsFaced'),
+      fours: get('fours'),
+      sixes: get('sixes'),
+      isDismissed: !!dismissalType,
+      dismissalType: dismissalType || '',
+      wickets: get('wickets'),
+      wicketTypes: wktTypeStore[pid] || [],
+      maidens: get('maidens'),
+      oversBowled: get('oversBowled'),
+      runsConceded: get('runsConceded'),
+      catches: get('catches'),
+      stumpings: get('stumpings'),
+      runOutDirect: get('runOutDirect'),
+      runOutAssist: get('runOutAssist'),
+    });
+  });
+  return stats;
+}
+
+async function submitStats(matchId) {
+  const btn = event.target;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  btn.disabled = true;
+  const stats = collectStats(matchId);
+  try {
+    const res = await post({
+      action: 'saveMatchStats',
+      requestedBy: state.user.username,
+      matchId,
+      stats,
+    });
+    if (!res.success) throw new Error(res.error);
+    showToast('Stats saved! Points calculated. ✅', 'success');
+    // Refresh matches list
+    await loadMatches();
+    renderFixtures();
+    populateLeaderboardSelect();
+  } catch(e) {
+    showToast(e.message || 'Failed to save stats.', 'error');
+  }
+  btn.innerHTML = '✅ Save Stats &amp; Calculate Points';
+  btn.disabled = false;
+}
+
+// ============================================================
+// API HELPERS
+// ============================================================
+async function get(params) {
+  const url = new URL(API_URL);
+  Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString());
+  return res.json();
+}
+
+async function post(body) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = '') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+</script>
+</body>
+</html>
