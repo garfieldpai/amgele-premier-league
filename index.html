@@ -553,11 +553,10 @@
   .admin-section-title .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--saffron); }
 
   .stats-table {
-    width: 100%; border-collapse: collapse;
+    width: 100%; border-collapse: separate; border-spacing: 0;
     background: var(--navy-card);
     border: 1px solid var(--navy-border);
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-    overflow: hidden;
     margin-bottom: 14px;
   }
   .stats-table thead { background: var(--navy-mid); }
@@ -568,17 +567,37 @@
     padding: 7px 6px;
     text-align: center;
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    background: var(--navy-mid);
+    z-index: 2;
+    border-bottom: 1px solid var(--navy-border);
   }
-  .stats-table th:first-child { text-align: left; padding-left: 12px; }
+  .stats-table th:first-child {
+    text-align: left; padding-left: 12px;
+    position: sticky; left: 0; top: 0;
+    z-index: 3;
+    background: var(--navy-mid);
+    min-width: 110px;
+    box-shadow: 2px 0 6px rgba(0,0,0,0.4);
+  }
   .stats-table td {
     padding: 6px 4px;
     text-align: center;
     border-bottom: 1px solid var(--navy-border);
     vertical-align: middle;
   }
-  .stats-table td:first-child { text-align: left; padding-left: 12px; }
+  .stats-table td:first-child {
+    text-align: left; padding-left: 12px;
+    position: sticky; left: 0;
+    z-index: 1;
+    background: var(--navy-card);
+    min-width: 110px;
+    box-shadow: 2px 0 6px rgba(0,0,0,0.4);
+  }
   .stats-table tr:last-child td { border-bottom: none; }
   .stats-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .stats-table tr:hover td:first-child { background: var(--navy-card); }
 
   .stat-input {
     width: 44px; padding: 4px 3px;
@@ -725,7 +744,7 @@
   @keyframes spin { to { transform: rotate(360deg); } }
 
   /* Scrollable table wrapper for admin */
-  .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch; border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
 
   /* ── RULES PAGE ── */
   .rules-team-card {
@@ -885,7 +904,7 @@
         <div class="role-counter" id="rc-WK">
           <div class="rc-label">WK</div>
           <div class="rc-val" id="rc-WK-val">0</div>
-          <div class="rc-label">need 1 or 2</div>
+          <div class="rc-label">need 1</div>
         </div>
         <div class="role-counter" id="rc-BAT">
           <div class="rc-label">BAT</div>
@@ -1060,11 +1079,38 @@
 
   <!-- ADMIN PAGE -->
   <div class="page" id="page-admin">
-    <div class="section-title">Enter Match Stats</div>
-    <select class="form-input admin-match-select" id="admin-match-select" onchange="loadAdminMatch()">
-      <option value="">Select a match to score…</option>
-    </select>
-    <div id="admin-content"></div>
+
+    <div class="lb-tabs" style="margin-bottom:16px;">
+      <button class="lb-tab active" onclick="adminMode('form')" id="atab-form">📋 Form Entry</button>
+      <button class="lb-tab" onclick="adminMode('json')" id="atab-json">⚡ Paste JSON</button>
+    </div>
+
+    <div id="admin-form-panel">
+      <div class="section-title">Enter Match Stats</div>
+      <select class="form-input admin-match-select" id="admin-match-select" onchange="loadAdminMatch()">
+        <option value="">Select a match to score…</option>
+      </select>
+      <div id="admin-content"></div>
+    </div>
+
+    <div id="admin-json-panel" style="display:none;">
+      <div class="section-title">Paste Stats JSON</div>
+      <select class="form-input" id="admin-json-match-select" style="margin-bottom:10px;">
+        <option value="">Select match…</option>
+      </select>
+      <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:8px;">
+        Paste the stats JSON array generated from the Cricinfo scorecard.
+      </div>
+      <textarea id="admin-json-input" class="form-input" rows="12"
+        style="font-family:'DM Mono',monospace;font-size:0.72rem;resize:vertical;"
+        placeholder="Paste JSON array here..."></textarea>
+      <div id="admin-json-error" class="error-msg" style="margin-top:8px;"></div>
+      <button class="btn btn-green mt-16" onclick="submitJSONStats()">
+        ✅ Submit Stats &amp; Calculate Points
+      </button>
+      <p class="text-center text-sm text-dim mt-8">Paste the full JSON array then tap Submit.</p>
+    </div>
+
   </div>
 </div>
 
@@ -1075,7 +1121,7 @@
 // ============================================================
 // CONFIG — paste your Apps Script Web App URL here
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzDmXvmNs3ubByh_wLn0KRCS5fJGwn4Um7om4mIbLLF8vjHNL5TCDsYnfgffmOdMUFK/exec';
+const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 // ============================================================
 // STATE
@@ -1521,7 +1567,7 @@ function validateTeamClient() {
     if (teamCounts[p.iplTeam] > 7) return 'Max 7 players from one IPL team.';
   }
   if (state.selected.length !== 11) return 'Select exactly 11 players.';
-  if (counts.WK < 1 || counts.WK > 2) throw new Error('Select 1 or 2 wicket-keepers');
+  if (counts.WK < 1 || counts.WK > 2) return 'Select 1 or 2 wicket-keepers.';
   if (counts.BAT + counts.ALL < 3) return 'Need at least 3 batsmen (including all-rounders).';
   if (counts.BOWL + counts.ALL < 3) return 'Need at least 3 bowlers (including all-rounders).';
   if (counts.ALL < 1) return 'Need at least 1 all-rounder.';
@@ -1891,6 +1937,63 @@ async function submitStats(matchId) {
     showToast(e.message || 'Failed to save stats.', 'error');
   }
   btn.innerHTML = '✅ Save Stats &amp; Calculate Points';
+  btn.disabled = false;
+}
+
+// ============================================================
+// ============================================================
+// ADMIN MODE TOGGLE
+// ============================================================
+function adminMode(mode) {
+  document.getElementById('admin-form-panel').style.display = mode === 'form' ? 'block' : 'none';
+  document.getElementById('admin-json-panel').style.display = mode === 'json' ? 'block' : 'none';
+  document.getElementById('atab-form').classList.toggle('active', mode === 'form');
+  document.getElementById('atab-json').classList.toggle('active', mode === 'json');
+  if (mode === 'json') {
+    const src = document.getElementById('admin-match-select');
+    const dst = document.getElementById('admin-json-match-select');
+    dst.innerHTML = src.innerHTML;
+  }
+}
+
+async function submitJSONStats() {
+  const matchId = document.getElementById('admin-json-match-select').value;
+  const raw = document.getElementById('admin-json-input').value.trim();
+  const errEl = document.getElementById('admin-json-error');
+  errEl.classList.remove('show');
+  if (!matchId) { errEl.textContent = 'Select a match first.'; errEl.classList.add('show'); return; }
+  if (!raw) { errEl.textContent = 'Paste the JSON stats array first.'; errEl.classList.add('show'); return; }
+  let stats;
+  try {
+    stats = JSON.parse(raw);
+    if (!Array.isArray(stats)) throw new Error('JSON must be an array [ ... ]');
+  } catch(e) {
+    errEl.textContent = 'Invalid JSON: ' + e.message;
+    errEl.classList.add('show');
+    return;
+  }
+  const btn = event.target;
+  btn.innerHTML = '<span class="spinner"></span> Submitting…';
+  btn.disabled = true;
+  try {
+    const res = await post({
+      action: 'saveMatchStats',
+      requestedBy: state.user.username,
+      matchId,
+      stats,
+    });
+    if (!res.success) throw new Error(res.error);
+    showToast('Stats submitted! Points calculated. ✅', 'success');
+    document.getElementById('admin-json-input').value = '';
+    await loadMatches();
+    renderFixtures();
+    populateLeaderboardSelect();
+    populateAdminSelect();
+  } catch(e) {
+    errEl.textContent = e.message || 'Submission failed.';
+    errEl.classList.add('show');
+  }
+  btn.innerHTML = '✅ Submit Stats &amp; Calculate Points';
   btn.disabled = false;
 }
 
