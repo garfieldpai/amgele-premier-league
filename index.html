@@ -746,6 +746,98 @@
   /* Scrollable table wrapper for admin */
   .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch; border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
 
+  /* ── PLAYER STATS PAGE ── */
+  .ps-card {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .ps-card:hover { border-color: var(--saffron); }
+  .ps-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+  .ps-card.role-BAT::before  { background: var(--saffron); }
+  .ps-card.role-BOWL::before { background: var(--green); }
+  .ps-card.role-WK::before   { background: #63b3ed; }
+  .ps-card.role-ALL::before  { background: var(--gold); }
+
+  .ps-top { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .ps-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 700; flex-shrink: 0;
+  }
+  .ps-avatar.role-BAT  { background: var(--saffron-dim); color: var(--saffron); }
+  .ps-avatar.role-BOWL { background: var(--green-dim); color: var(--green); }
+  .ps-avatar.role-WK   { background: rgba(99,179,237,0.15); color: #63b3ed; }
+  .ps-avatar.role-ALL  { background: var(--gold-dim); color: var(--gold); }
+
+  .ps-name { font-size: 0.88rem; font-weight: 700; }
+  .ps-meta { font-size: 0.7rem; color: var(--text-secondary); }
+  .ps-pts  { margin-left: auto; text-align: right; }
+  .ps-pts-val { font-size: 1.2rem; font-weight: 700; color: var(--saffron); font-family: "DM Mono", monospace; }
+  .ps-pts-label { font-size: 0.6rem; color: var(--text-dim); }
+
+  .ps-stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+  }
+  .ps-stat {
+    background: var(--navy);
+    border-radius: 6px;
+    padding: 5px 4px;
+    text-align: center;
+  }
+  .ps-stat-val { font-size: 0.82rem; font-weight: 700; font-family: "DM Mono", monospace; color: var(--text-primary); }
+  .ps-stat-label { font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .ps-form { display: flex; align-items: center; gap: 3px; margin-top: 8px; }
+  .ps-form-label { font-size: 0.65rem; color: var(--text-dim); margin-right: 4px; }
+  .ps-form-dot {
+    width: 28px; height: 20px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.62rem; font-weight: 700; font-family: "DM Mono", monospace;
+  }
+  .ps-form-dot.high { background: var(--green-dim); color: var(--green); }
+  .ps-form-dot.mid  { background: var(--gold-dim); color: var(--gold); }
+  .ps-form-dot.low  { background: rgba(255,68,68,0.1); color: #ff6666; }
+  .ps-form-dot.none { background: var(--navy-border); color: var(--text-dim); }
+
+  /* Modal detail */
+  .ps-detail-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .ps-detail-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 700;
+  }
+  .ps-detail-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 16px;
+  }
+  .ps-detail-stat {
+    background: var(--navy);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .ps-detail-stat-val { font-size: 1.3rem; font-weight: 700; font-family: "DM Mono", monospace; color: var(--text-primary); }
+  .ps-detail-stat-label { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+  .ps-match-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--navy-border);
+    font-size: 0.78rem;
+  }
+  .ps-match-row:last-child { border-bottom: none; }
+
   /* ── RULES PAGE ── */
   .rules-team-card {
     background: var(--navy-card);
@@ -863,6 +955,9 @@
     <button class="nav-tab" onclick="showPage('leaderboard')" id="tab-leaderboard">
       <span class="tab-icon">🏆</span>Standings
     </button>
+    <button class="nav-tab" onclick="showPage('players')" id="tab-players">
+      <span class="tab-icon">⭐</span>Players
+    </button>
     <button class="nav-tab" onclick="showPage('rules')" id="tab-rules">
       <span class="tab-icon">📋</span>Rules
     </button>
@@ -967,6 +1062,48 @@
     <div id="lb-overall-panel" style="display:none;">
       <div id="lb-overall-list"></div>
     </div>
+  </div>
+
+  <!-- PLAYERS PAGE -->
+  <div class="page" id="page-players">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-size:1rem;font-weight:700;">Player Stats</div>
+      <div style="font-size:0.72rem;color:var(--text-secondary);">Season 2026</div>
+    </div>
+
+    <!-- Role filter -->
+    <div class="filter-bar" style="margin-bottom:12px;">
+      <button class="filter-pill active" onclick="filterPlayerStats('ALL')" id="ps-ALL">All</button>
+      <button class="filter-pill" onclick="filterPlayerStats('BAT')" id="ps-BAT">🏏 Bat</button>
+      <button class="filter-pill" onclick="filterPlayerStats('BOWL')" id="ps-BOWL">🎯 Bowl</button>
+      <button class="filter-pill" onclick="filterPlayerStats('WK')" id="ps-WK">🧤 WK</button>
+      <button class="filter-pill" onclick="filterPlayerStats('ALL_R')" id="ps-ALL_R">⭐ All-rdr</button>
+    </div>
+
+    <!-- Sort bar -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+      <span style="font-size:0.72rem;color:var(--text-secondary);">Sort by:</span>
+      <select class="stat-select" id="ps-sort" onchange="renderPlayerStats()" style="flex:1;max-width:180px;padding:6px 8px;">
+        <option value="totalFantasyPts">Fantasy Points</option>
+        <option value="runs">Runs</option>
+        <option value="wickets">Wickets</option>
+        <option value="catches">Catches</option>
+      </select>
+    </div>
+
+    <div id="ps-loading" class="text-center text-dim text-sm" style="padding:30px;">Loading player stats…</div>
+    <div id="ps-list" style="display:none;"></div>
+
+    <!-- Player detail modal -->
+    <div class="modal-overlay" id="ps-modal">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div id="ps-modal-content"></div>
+        <button class="btn btn-secondary mt-16" onclick="closePlayerModal()">Close</button>
+      </div>
+    </div>
+
   </div>
 
   <!-- RULES PAGE -->
@@ -1118,7 +1255,7 @@
 // ============================================================
 // CONFIG — paste your Apps Script Web App URL here
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzDmXvmNs3ubByh_wLn0KRCS5fJGwn4Um7om4mIbLLF8vjHNL5TCDsYnfgffmOdMUFK/exec';
+const API_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 // ============================================================
 // STATE
@@ -1227,6 +1364,7 @@ function showPage(name) {
   document.getElementById('tab-' + name).classList.add('active');
   if (name === 'leaderboard') loadLeaderboard();
   if (name === 'leaderboard' && state.lbMode === 'overall') loadOverall();
+  if (name === 'players' && allPlayerStats.length === 0) loadPlayerStats();
 }
 
 // ============================================================
@@ -1938,6 +2076,132 @@ async function submitStats(matchId) {
 }
 
 // ============================================================
+// ============================================================
+// PLAYER STATS
+// ============================================================
+let allPlayerStats = [];
+let psRoleFilter = 'ALL';
+
+async function loadPlayerStats() {
+  const loadEl = document.getElementById('ps-loading');
+  const listEl = document.getElementById('ps-list');
+  loadEl.style.display = 'block';
+  listEl.style.display = 'none';
+  try {
+    const res = await get({ action: 'getPlayerStats', role: 'ALL' });
+    if (!res.success) throw new Error(res.error);
+    allPlayerStats = res.data;
+    loadEl.style.display = 'none';
+    listEl.style.display = 'block';
+    renderPlayerStats();
+  } catch(e) {
+    loadEl.textContent = 'Failed to load: ' + e.message;
+  }
+}
+
+function filterPlayerStats(role) {
+  psRoleFilter = role;
+  ['ALL','BAT','BOWL','WK','ALL_R'].forEach(r => {
+    const el = document.getElementById('ps-' + r);
+    if (el) el.classList.remove('active');
+  });
+  document.getElementById('ps-' + role)?.classList.add('active');
+  renderPlayerStats();
+}
+
+function renderPlayerStats() {
+  const sortKey = document.getElementById('ps-sort')?.value || 'totalFantasyPts';
+  const listEl = document.getElementById('ps-list');
+  let filtered = allPlayerStats;
+  if (psRoleFilter === 'ALL_R') filtered = allPlayerStats.filter(p => p.role === 'ALL');
+  else if (psRoleFilter !== 'ALL') filtered = allPlayerStats.filter(p => p.role === psRoleFilter);
+  filtered = [...filtered].sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="empty-state"><div class="icon">&#11088;</div><p>No player stats yet. Score a match first.</p></div>';
+    return;
+  }
+  listEl.innerHTML = filtered.map(p => {
+    const initials = p.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+    const form = p.lastThree || [];
+    const formDots = form.length === 0
+      ? '<span class="ps-form-dot none">&mdash;</span>'
+      : form.map(pts => {
+          const cls = pts >= 60 ? 'high' : pts >= 30 ? 'mid' : 'low';
+          return '<span class="ps-form-dot ' + cls + '">' + pts + '</span>';
+        }).join('');
+    const isBat  = p.role === 'BAT' || p.role === 'WK' || p.role === 'ALL';
+    const isBowl = p.role === 'BOWL' || p.role === 'ALL';
+    return '<div class="ps-card role-' + p.role + '" onclick="openPlayerModal(\'' + p.playerId + '\')">'
+      + '<div class="ps-top">'
+      + '<div class="ps-avatar role-' + p.role + '">' + initials + '</div>'
+      + '<div><div class="ps-name">' + p.name + '</div>'
+      + '<div class="ps-meta">' + shortTeam(p.iplTeam) + ' &middot; ' + p.role + ' &middot; ' + p.matchesPlayed + ' match' + (p.matchesPlayed !== 1 ? 'es' : '') + '</div></div>'
+      + '<div class="ps-pts"><div class="ps-pts-val">' + p.totalFantasyPts + '</div><div class="ps-pts-label">fantasy pts</div></div>'
+      + '</div>'
+      + '<div class="ps-stats-row">'
+      + (isBat  ? '<div class="ps-stat"><div class="ps-stat-val">' + p.runs    + '</div><div class="ps-stat-label">Runs</div></div>' : '<div class="ps-stat"><div class="ps-stat-val">&mdash;</div><div class="ps-stat-label">Runs</div></div>')
+      + (isBat  ? '<div class="ps-stat"><div class="ps-stat-val">' + p.sixes   + '</div><div class="ps-stat-label">6s</div></div>'  : '<div class="ps-stat"><div class="ps-stat-val">&mdash;</div><div class="ps-stat-label">6s</div></div>')
+      + (isBowl ? '<div class="ps-stat"><div class="ps-stat-val">' + p.wickets + '</div><div class="ps-stat-label">Wkts</div></div>' : '<div class="ps-stat"><div class="ps-stat-val">&mdash;</div><div class="ps-stat-label">Wkts</div></div>')
+      + '<div class="ps-stat"><div class="ps-stat-val">' + (p.catches + p.stumpings) + '</div><div class="ps-stat-label">Dis</div></div>'
+      + '<div class="ps-stat"><div class="ps-stat-val">' + (p.fifties || 0) + '</div><div class="ps-stat-label">50s</div></div>'
+      + '</div>'
+      + '<div class="ps-form"><span class="ps-form-label">Last 3:</span>' + formDots + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openPlayerModal(playerId) {
+  const p = allPlayerStats.find(x => x.playerId === playerId);
+  if (!p) return;
+  const initials = p.name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  const modal = document.getElementById('ps-modal');
+  const content = document.getElementById('ps-modal-content');
+  const formHtml = p.lastThree && p.lastThree.length > 0
+    ? '<div class="section-title">Recent Form</div>'
+      + '<div class="ps-form" style="margin-bottom:8px;">'
+      + p.lastThree.map(pts => {
+          const cls = pts >= 60 ? 'high' : pts >= 30 ? 'mid' : 'low';
+          return '<span class="ps-form-dot ' + cls + '" style="width:48px;height:32px;font-size:0.8rem;">' + pts + '</span>';
+        }).join('')
+      + '</div>'
+      + '<div style="font-size:0.7rem;color:var(--text-dim);">Fantasy pts in last ' + p.lastThree.length + ' scored match' + (p.lastThree.length !== 1 ? 'es' : '') + '</div>'
+    : '';
+  content.innerHTML =
+    '<div class="ps-detail-header">'
+    + '<div class="ps-avatar role-' + p.role + '" style="width:48px;height:48px;font-size:0.9rem;">' + initials + '</div>'
+    + '<div><div style="font-size:1.05rem;font-weight:700;">' + p.name + '</div>'
+    + '<div style="font-size:0.75rem;color:var(--text-secondary);">' + p.iplTeam + ' &middot; ' + p.role + '</div>'
+    + '<div style="font-size:0.72rem;color:var(--text-dim);">' + p.matchesPlayed + ' matches</div></div>'
+    + '<div style="margin-left:auto;text-align:right;">'
+    + '<div style="font-size:1.5rem;font-weight:700;color:var(--saffron);font-family:\'DM Mono\',monospace;">' + p.totalFantasyPts + '</div>'
+    + '<div style="font-size:0.65rem;color:var(--text-dim);">total fantasy pts</div></div></div>'
+    + '<div class="section-title">Batting</div>'
+    + '<div class="ps-detail-grid">'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.runs + '</div><div class="ps-detail-stat-label">Total Runs</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + (p.fifties||0) + (p.centuries ? ' / ' + p.centuries : '') + '</div><div class="ps-detail-stat-label">50s / 100s</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.fours + '</div><div class="ps-detail-stat-label">Fours</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.sixes + '</div><div class="ps-detail-stat-label">Sixes</div></div>'
+    + '</div>'
+    + '<div class="section-title">Bowling</div>'
+    + '<div class="ps-detail-grid">'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.wickets + '</div><div class="ps-detail-stat-label">Wickets</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.maidens + '</div><div class="ps-detail-stat-label">Maidens</div></div>'
+    + '</div>'
+    + '<div class="section-title">Fielding</div>'
+    + '<div class="ps-detail-grid">'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.catches + '</div><div class="ps-detail-stat-label">Catches</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.stumpings + '</div><div class="ps-detail-stat-label">Stumpings</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + p.runOuts + '</div><div class="ps-detail-stat-label">Run Outs</div></div>'
+    + '<div class="ps-detail-stat"><div class="ps-detail-stat-val">' + (p.catches + p.stumpings + p.runOuts) + '</div><div class="ps-detail-stat-label">Total Dis</div></div>'
+    + '</div>'
+    + formHtml;
+  modal.classList.add('open');
+}
+
+function closePlayerModal() {
+  document.getElementById('ps-modal').classList.remove('open');
+}
+
 // ============================================================
 // ADMIN MODE TOGGLE
 // ============================================================
