@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Amgele Premier League</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#FF6B00">
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Sanskrit:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -2493,6 +2495,9 @@ function showToast(msg, type = '') {
   toast.textContent = msg;
   container.appendChild(toast);
   setTimeout(() => toast.remove(), 3000);
+}
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/amgele-premier-league/sw.js');
 }
 </script>
 </body>
