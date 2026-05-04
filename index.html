@@ -746,6 +746,96 @@
   /* Scrollable table wrapper for admin */
   .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 60vh; -webkit-overflow-scrolling: touch; border-radius: 0 0 var(--radius-sm) var(--radius-sm); }
 
+  /* ── VIEW TEAMS MODAL ── */
+  .teams-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .teams-modal-title { font-size: 1rem; font-weight: 700; }
+  .teams-match-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px; }
+  .teams-scored-badge {
+    font-size: 0.65rem; font-weight: 700;
+    padding: 3px 8px; border-radius: 20px;
+    background: var(--green-dim); color: var(--green);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+
+  .team-entry {
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .team-entry-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    cursor: pointer;
+    background: var(--navy-card);
+  }
+  .team-entry-header:hover { background: var(--navy-mid); }
+  .team-entry.me .team-entry-header { border-left: 3px solid var(--saffron); }
+  .team-entry-user { font-size: 0.88rem; font-weight: 700; }
+  .team-entry-pts {
+    font-family: 'DM Mono', monospace;
+    font-size: 1.1rem; font-weight: 700;
+    color: var(--saffron);
+  }
+  .team-entry-rank {
+    font-size: 0.75rem; color: var(--text-dim);
+    margin-right: 8px;
+  }
+  .team-entry-chevron {
+    font-size: 0.7rem; color: var(--text-dim);
+    transition: transform 0.2s;
+    margin-left: 8px;
+  }
+  .team-entry.open .team-entry-chevron { transform: rotate(180deg); }
+
+  .team-entry-players {
+    display: none;
+    padding: 8px 10px 10px;
+  }
+  .team-entry.open .team-entry-players { display: block; }
+
+  .team-player-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 4px;
+    border-bottom: 1px solid var(--navy-border);
+    font-size: 0.78rem;
+  }
+  .team-player-row:last-child { border-bottom: none; }
+  .team-player-name { flex: 1; }
+  .team-player-team { font-size: 0.65rem; color: var(--text-secondary); }
+  .cap-marker {
+    font-size: 0.6rem; font-weight: 800;
+    padding: 2px 5px; border-radius: 3px;
+    letter-spacing: 0.03em;
+  }
+  .cap-marker.C { background: var(--gold); color: var(--navy); }
+  .cap-marker.VC { background: #b8a0ff; color: var(--navy); }
+  .team-player-role-badge {
+    width: 24px; height: 24px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.55rem; font-weight: 700; flex-shrink: 0;
+  }
+
+  .view-teams-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 7px 12px;
+    background: var(--navy);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem; font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 100%;
+    transition: all var(--transition);
+  }
+  .view-teams-btn:hover { border-color: var(--saffron); color: var(--saffron); }
+
   /* ── PLAYER STATS PAGE ── */
   .ps-card {
     background: var(--navy-card);
@@ -1106,6 +1196,23 @@
 
   </div>
 
+  <!-- TEAMS MODAL -->
+  <div class="modal-overlay" id="teams-modal">
+    <div class="modal" style="max-height:85vh;overflow-y:auto;">
+      <div class="modal-handle"></div>
+      <div class="teams-modal-header">
+        <div>
+          <div class="teams-modal-title" id="teams-modal-title">All Teams</div>
+          <div class="teams-match-label" id="teams-modal-match"></div>
+        </div>
+        <div id="teams-scored-badge"></div>
+      </div>
+      <div id="teams-modal-loading" class="text-center text-dim text-sm" style="padding:20px;">Loading…</div>
+      <div id="teams-modal-list"></div>
+      <button class="btn btn-secondary mt-16" onclick="closeTeamsModal()">Close</button>
+    </div>
+  </div>
+
   <!-- RULES PAGE -->
   <div class="page" id="page-rules">
 
@@ -1431,7 +1538,8 @@ function matchCardHTML(m, isCompleted = false) {
       ? '<span class="match-badge badge-locked">🔒 Locked</span>'
       : '<span class="match-badge badge-upcoming">Open</span>';
 
-  const onClick = isCompleted ? '' : `onclick="openPickForMatch('${m.matchId}')"`;
+  const onClick = isCompleted ? '' : (locked ? '' : `onclick="openPickForMatch('${m.matchId}')"`);
+  const showViewTeams = locked || isCompleted;
 
   return `
     <div class="${classes.join(' ')}" ${onClick} id="mcard-${m.matchId}">
@@ -1447,6 +1555,10 @@ function matchCardHTML(m, isCompleted = false) {
         </div>
         ${badge}
       </div>
+      ${showViewTeams ? `
+      <button class="view-teams-btn" onclick="event.stopPropagation(); openTeamsModal('${m.matchId}', '${shortTeam(m.teamA)} vs ${shortTeam(m.teamB)}')">
+        👥 View Teams
+      </button>` : ''}
     </div>`;
 }
 
@@ -2200,6 +2312,101 @@ function openPlayerModal(playerId) {
 
 function closePlayerModal() {
   document.getElementById('ps-modal').classList.remove('open');
+}
+
+// ============================================================
+// VIEW TEAMS MODAL
+// ============================================================
+async function openTeamsModal(matchId, matchLabel) {
+  const modal = document.getElementById('teams-modal');
+  const listEl = document.getElementById('teams-modal-list');
+  const loadEl = document.getElementById('teams-modal-loading');
+  const titleEl = document.getElementById('teams-modal-title');
+  const matchEl = document.getElementById('teams-modal-match');
+  const badgeEl = document.getElementById('teams-scored-badge');
+
+  titleEl.textContent = 'All Teams';
+  matchEl.textContent = matchLabel;
+  badgeEl.innerHTML = '';
+  listEl.innerHTML = '';
+  loadEl.style.display = 'block';
+  modal.classList.add('open');
+
+  try {
+    const res = await get({ action: 'getMatchSelections', matchId });
+    if (!res.success) throw new Error(res.error);
+    const { selections, isScored } = res.data;
+
+    loadEl.style.display = 'none';
+
+    if (isScored) {
+      badgeEl.innerHTML = '<span class="teams-scored-badge">Scored</span>';
+    }
+
+    if (selections.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>No teams submitted for this match yet.</p></div>';
+      return;
+    }
+
+    listEl.innerHTML = selections.map((s, idx) => {
+      const isMe = s.username === state.user.username;
+      const rank = isScored ? (idx + 1) : null;
+      const rankEmoji = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank ? '#' + rank : '';
+
+      const playersHTML = s.players.map(p => {
+        const roleClass = 'role-' + (p.role || 'BAT');
+        const capMark = p.isCaptain
+          ? '<span class="cap-marker C">C</span>'
+          : p.isVC
+            ? '<span class="cap-marker VC">VC</span>'
+            : '';
+        return '<div class="team-player-row">'
+          + '<div class="team-player-role-badge ' + roleClass + '">' + (p.role || '?') + '</div>'
+          + '<div style="flex:1;">'
+          + '<div class="team-player-name">' + p.name + (capMark ? ' ' + capMark : '') + '</div>'
+          + '<div class="team-player-team">' + shortTeam(p.iplTeam) + '</div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+
+      const ptsDisplay = isScored && s.totalPoints !== null
+        ? '<div style="text-align:right;"><div class="team-entry-pts">' + s.totalPoints + '</div><div style="font-size:0.65rem;color:var(--text-dim);">pts</div></div>'
+        : '';
+
+      return '<div class="team-entry' + (isMe ? ' me' : '') + '" id="te-' + s.username + '">'
+        + '<div class="team-entry-header" onclick="toggleTeamEntry(\'' + s.username + '\')">'
+        + '<div>'
+        + (rank ? '<span class="team-entry-rank">' + rankEmoji + '</span>' : '')
+        + '<span class="team-entry-user">' + s.username + (isMe ? ' <span style="color:var(--saffron);font-size:0.7rem;">(you)</span>' : '') + '</span>'
+        + '</div>'
+        + '<div style="display:flex;align-items:center;">'
+        + ptsDisplay
+        + '<span class="team-entry-chevron">▾</span>'
+        + '</div>'
+        + '</div>'
+        + '<div class="team-entry-players">' + playersHTML + '</div>'
+        + '</div>';
+    }).join('');
+
+    // Auto-expand current user's team
+    const myEntry = document.getElementById('te-' + state.user.username);
+    if (myEntry) {
+      myEntry.classList.add('open');
+    }
+
+  } catch(e) {
+    loadEl.style.display = 'none';
+    listEl.innerHTML = '<div class="empty-state"><p>' + e.message + '</p></div>';
+  }
+}
+
+function toggleTeamEntry(username) {
+  const el = document.getElementById('te-' + username);
+  if (el) el.classList.toggle('open');
+}
+
+function closeTeamsModal() {
+  document.getElementById('teams-modal').classList.remove('open');
 }
 
 // ============================================================
