@@ -2362,12 +2362,27 @@ async function openTeamsModal(matchId, matchLabel) {
           : p.isVC
             ? '<span class="cap-marker VC">VC</span>'
             : '';
+            // Points display
+            let ptsHTML = '';
+            if (p.finalPoints !== null && p.finalPoints !== undefined) {
+              const multLabel = p.multiplier > 1
+                ? '<span style="font-size:0.55rem;color:var(--gold);margin-left:2px;">' + p.multiplier + '\u00d7</span>'
+                : '';
+              const color = p.finalPoints > 0 ? 'var(--green)' : p.finalPoints < 0 ? '#ff5555' : 'var(--text-dim)';
+              ptsHTML = '<div style="text-align:right;flex-shrink:0;min-width:44px;">'
+                + '<div style="font-family:\'DM Mono\',monospace;font-size:0.78rem;font-weight:700;color:' + color + ';">'
+                + p.finalPoints + multLabel
+                + '</div>'
+                + '<div style="font-size:0.55rem;color:var(--text-dim);">pts</div>'
+                + '</div>';
+            }
         return '<div class="team-player-row">'
           + '<div class="team-player-role-badge ' + roleClass + '">' + (p.role || '?') + '</div>'
           + '<div style="flex:1;">'
           + '<div class="team-player-name">' + p.name + (capMark ? ' ' + capMark : '') + '</div>'
           + '<div class="team-player-team">' + shortTeam(p.iplTeam) + '</div>'
           + '</div>'
+          + ptsHTML
           + '</div>';
       }).join('');
 
