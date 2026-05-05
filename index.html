@@ -929,7 +929,75 @@
     font-size: 0.78rem;
   }
   .ps-match-row:last-child { border-bottom: none; }
-
+  
+  /* ── PLAYING XI SELECTOR ── */
+  .xi-selector {
+    background: var(--navy-card);
+    border: 1px solid var(--navy-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .xi-selector-title {
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .xi-count-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    background: var(--saffron-dim);
+    color: var(--saffron);
+    padding: 2px 8px; border-radius: 20px;
+  }
+  .xi-team-label {
+    font-size: 0.7rem; font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin: 10px 0 6px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .xi-player-grid {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .xi-player-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--navy-border);
+    background: var(--navy);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-size: 0.82rem;
+  }
+  .xi-player-row:hover { border-color: var(--saffron); }
+  .xi-player-row.selected {
+    border-color: var(--green);
+    background: rgba(0,165,80,0.05);
+  }
+  .xi-checkbox {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 2px solid var(--navy-border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition);
+    font-size: 0.6rem;
+  }
+  .xi-player-row.selected .xi-checkbox {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+  }
+  .xi-player-name { flex: 1; font-weight: 500; }
+  .xi-player-role {
+    font-size: 0.6rem; font-weight: 700;
+    padding: 1px 5px; border-radius: 3px;
+    flex-shrink: 0;
+  }
+  
   /* ── RULES PAGE ── */
   .rules-team-card {
     background: var(--navy-card);
@@ -1333,6 +1401,25 @@
       <select class="form-input admin-match-select" id="admin-match-select" onchange="loadAdminMatch()">
         <option value="">Select a match to score…</option>
       </select>
+        <!-- PLAYING XI SELECTOR -->
+        <div id="admin-xi-section" style="display:none;">
+          <div class="xi-selector">
+            <div class="xi-selector-title">
+              <span>Set Playing XI</span>
+              <span class="xi-count-badge" id="xi-count-badge">0 selected</span>
+            </div>
+            <div style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:10px;">
+              Tick players in today’s playing XI. Others will be greyed out in the stats form.
+            </div>
+            <div id="xi-player-list"></div>
+            <div style="display:flex;gap:8px;margin-top:12px;">
+              <button class="btn btn-green" style="flex:1;" onclick="savePlayingXIAndLoadStats()">
+                ✅ Confirm &amp; Load Stats Form
+              </button>
+              <button class="btn btn-secondary" style="width:auto;padding:10px 14px;" onclick="selectAllXI()" title="Select all">All</button>
+            </div>
+          </div>
+        </div>
       <div id="admin-content"></div>
     </div>
 
@@ -1986,59 +2073,164 @@ function populateAdminSelect() {
       `<option value="${m.matchId}">${shortTeam(m.teamA)} vs ${shortTeam(m.teamB)} · ${formatDate(m.date)} [${m.status}]</option>`
     ).join('');
 }
+// Playing XI state
+let xiPool = [];       // all players for current match
+let xiSelected = new Set(); // selected playerIds
 
 async function loadAdminMatch() {
   const matchId = document.getElementById('admin-match-select').value;
-  const content = document.getElementById('admin-content');
-  if (!matchId) { content.innerHTML = ''; return; }
+  const contentEl = document.getElementById('admin-content');
+  const xiSection = document.getElementById('admin-xi-section');
+  if (!matchId) {
+    contentEl.innerHTML = '';
+    xiSection.style.display = 'none';
+    return;
+  }
 
   const match = state.matches.find(m => m.matchId === matchId);
-  content.innerHTML = '<div class="text-center text-dim text-sm" style="padding:20px">Loading players…</div>';
-
+  xiSection.style.display = 'none';
+  contentEl.innerHTML = '<div class="text-center text-dim text-sm" style="padding:20px">Loading players…</div>';
   try {
     const pool = await getPlayerPool(matchId);
 
-    // Also try to load existing stats
-    let existingStats = {};
+    xiPool = pool;
+
+    // Load existing Playing XI selection
+    let savedXI = [];
     try {
-      const sres = await get({ action: 'getMatchStats', matchId });
-      if (sres.success && sres.data) {
-        sres.data.forEach(s => existingStats[s.playerId] = s);
+      const xiRes = await get({ action: 'getPlayingXI', matchId });
+      if (xiRes.success && xiRes.data.playerIds.length > 0) {
+        savedXI = xiRes.data.playerIds;
       }
     } catch(e) {}
 
-    // Group by team
-    const teamA = pool.filter(p => p.iplTeam === match.teamA);
-    const teamB = pool.filter(p => p.iplTeam === match.teamB);
+    // Pre-select saved XI or default to all
+    xiSelected = new Set(savedXI.length > 0 ? savedXI : pool.map(p => p.playerId));
 
-    content.innerHTML = `
-      <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:12px;">
-        Fill in stats from the match scorecard. Leave blank for players who didn't participate.
-        <br><strong style="color:var(--saffron);">Wicket Types:</strong> Click the type buttons for each wicket taken (e.g. 3 wickets = click 3 types).
-      </div>
-      ${adminTeamTable(match.teamA, teamA, existingStats)}
-      ${adminTeamTable(match.teamB, teamB, existingStats)}
-      <div class="mt-16">
-        <button class="btn btn-green" onclick="submitStats('${matchId}')">
-          ✅ Save Stats &amp; Calculate Points
-        </button>
-        <p class="text-center text-sm text-dim mt-8">This will calculate and publish points for all players' teams.</p>
-      </div>
-      <div style="height:40px;"></div>`;
+    // Show XI selector
+    contentEl.innerHTML = '';
+    renderXISelector(match);
+    xiSection.style.display = 'block';
 
   } catch(e) {
-    content.innerHTML = `<div class="empty-state"><p>${e.message}</p></div>`;
+    contentEl.innerHTML = '<div class="empty-state"><p>' + e.message + '</p></div>';
   }
 }
 
+function renderXISelector(match) {
+  const listEl = document.getElementById('xi-player-list');
+  const teams = [match.teamA, match.teamB];
+
+  listEl.innerHTML = teams.map(team => {
+    const players = xiPool.filter(p => p.iplTeam === team);
+    const rows = players.map(p => {
+      const isSelected = xiSelected.has(p.playerId);
+      return '<div class="xi-player-row' + (isSelected ? ' selected' : '') + '" onclick="toggleXI(\'' + p.playerId + '\')">' 
+        + '<div class="xi-checkbox">' + (isSelected ? '✓' : '') + '</div>'
+        + '<div class="xi-player-name">' + p.name + '</div>'
+        + '<span class="xi-player-role role-' + p.role + '">' + p.role + '</span>'
+        + '</div>';
+    }).join('');
+    return '<div class="xi-team-label">' + teamLogo(team, 16) + '<span>' + team + '</span></div>'
+      + '<div class="xi-player-grid">' + rows + '</div>';
+  }).join('');
+
+  updateXICount();
+}
+
+function toggleXI(playerId) {
+  if (xiSelected.has(playerId)) xiSelected.delete(playerId);
+  else xiSelected.add(playerId);
+  const row = document.querySelector('.xi-player-row[onclick*="' + playerId + '"]');
+  if (row) {
+    row.classList.toggle('selected');
+    row.querySelector('.xi-checkbox').textContent = xiSelected.has(playerId) ? '✓' : '';
+  }
+  updateXICount();
+}
+
+function selectAllXI() {
+  xiPool.forEach(p => xiSelected.add(p.playerId));
+  renderXISelector(state.matches.find(m => m.matchId === document.getElementById('admin-match-select').value));
+}
+
+function updateXICount() {
+  document.getElementById('xi-count-badge').textContent = xiSelected.size + ' selected';
+}
+
+async function savePlayingXIAndLoadStats() {
+  const matchId = document.getElementById('admin-match-select').value;
+  const match = state.matches.find(m => m.matchId === matchId);
+  const contentEl = document.getElementById('admin-content');
+  const xiSection = document.getElementById('admin-xi-section');
+
+  // Save XI to sheet
+  try {
+    await post({
+      action: 'savePlayingXI',
+      requestedBy: state.user.username,
+      matchId,
+      playerIds: [...xiSelected],
+    });
+  } catch(e) {
+    showToast('Could not save XI: ' + e.message, 'error');
+  }
+
+  // Hide XI selector, show stats form
+  xiSection.style.display = 'none';
+  contentEl.innerHTML = '<div class="text-center text-dim text-sm" style="padding:20px">Loading stats form…</div>';
+
+  // Load existing stats
+  let existingStats = {};
+  try {
+    const sres = await get({ action: 'getMatchStats', matchId });
+    if (sres.success && sres.data) {
+      sres.data.forEach(s => existingStats[s.playerId] = s);
+    }
+  } catch(e) {}
+
+  // Group by team — selected players first, then greyed out
+  const teamA = xiPool.filter(p => p.iplTeam === match.teamA);
+  const teamB = xiPool.filter(p => p.iplTeam === match.teamB);
+
+  contentEl.innerHTML =
+    '<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:12px;">'
+    + 'Fill in stats from the match scorecard. Greyed players were not in the Playing XI.'
+    + '<br><strong style="color:var(--saffron);">Wicket Types:</strong> Click the type buttons for each wicket taken.'
+    + ' <button class="btn-logout" onclick="showXISelector()" style="color:var(--saffron);font-size:0.75rem;">✏️ Edit Playing XI</button>'
+    + '</div>'
+    + adminTeamTable(match.teamA, teamA, existingStats)
+    + adminTeamTable(match.teamB, teamB, existingStats)
+    + '<div class="mt-16"><button class="btn btn-green" onclick="submitStats(\'' + matchId + '\')">'
+    + '✅ Save Stats &amp; Calculate Points</button>'
+    + '<p class="text-center text-sm text-dim mt-8">This will calculate and publish points for all players’ teams.</p></div>'
+    + '<div style="height:40px;"></div>';
+}
+
+function showXISelector() {
+  const matchId = document.getElementById('admin-match-select').value;
+  const match = state.matches.find(m => m.matchId === matchId);
+  document.getElementById('admin-content').innerHTML = '';
+  document.getElementById('admin-xi-section').style.display = 'block';
+  renderXISelector(match);
+}
+
 function adminTeamTable(teamName, players, existing) {
-  const rows = players.map(p => {
+  // Sort: selected XI first, greyed out after
+  const inXI = players.filter(p => xiSelected.has(p.playerId));
+  const notInXI = players.filter(p => !xiSelected.has(p.playerId));
+  const sorted = [...inXI, ...notInXI];
+
+  const rows = sorted.map(p => {
     const s = existing[p.playerId] || {};
     const wkt = parseInt(s.wickets || 0);
     const wktTypes = s.wicketTypes || [];
 
+    const isGreyed = !xiSelected.has(p.playerId);
+    const rowStyle = isGreyed ? 'opacity:0.35;pointer-events:none;' : '';
+
     return `
-      <tr id="stat-row-${p.playerId}" data-player-id="${p.playerId}" data-player-name="${p.name}" data-ipl-team="${p.iplTeam}" data-role="${p.role}">
+      <tr id="stat-row-${p.playerId}" data-player-id="${p.playerId}" data-player-name="${p.name}" data-ipl-team="${p.iplTeam}" data-role="${p.role}" style="${rowStyle}">
         <td>
           <div class="player-cell">${p.name}</div>
           <div class="player-cell-team"><span class="player-role-badge role-${p.role}" style="display:inline-flex;width:auto;padding:1px 5px;">${p.role}</span></div>
