@@ -7,6 +7,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#FF6B00">
 <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Sanskrit:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
     --saffron: #FF6B00;
@@ -1055,6 +1056,276 @@
     .page { padding: 20px 24px; }
     .nav-tab { font-size: 0.78rem; padding: 12px 16px; }
   }
+
+  /* ══════════════════════════════════════
+     SEASON 2026 PUBLIC SCREEN
+  ══════════════════════════════════════ */
+  #season2026-screen {
+    display: none;
+    min-height: 100vh;
+    flex-direction: column;
+    position: relative; z-index: 1;
+  }
+
+  /* Hero header */
+  .s25-hero {
+    position: relative;
+    height: 260px;
+    overflow: hidden;
+    border-bottom: 2px solid var(--gold);
+    flex-shrink: 0;
+  }
+  .s25-hero-bg {
+    position: absolute; inset: 0;
+    background-image: url("Champions.PNG");
+    background-size: cover; background-position: center 20%;
+    filter: brightness(0.35) saturate(1.3);
+    transform: scale(1.04); transition: transform 8s ease;
+  }
+  .s25-hero:hover .s25-hero-bg { transform: scale(1.0); }
+  .s25-hero-fade {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(10,15,30,0.1) 0%, rgba(10,15,30,0.95) 100%);
+  }
+  .s25-hero-stripe {
+    position: absolute; top: 0; left: -40px;
+    width: 260px; height: 100%;
+    background: linear-gradient(110deg, rgba(255,107,0,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .s25-hero-content {
+    position: relative; z-index: 2; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    padding-bottom: 24px; text-align: center; padding-inline: 16px;
+  }
+  .s25-pill {
+    display: inline-block;
+    background: var(--saffron); color: #fff;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.35em; text-transform: uppercase;
+    padding: 3px 14px; border-radius: 20px; margin-bottom: 10px;
+    animation: fadeUp25 0.6s ease both;
+  }
+  .s25-hero-title {
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    font-size: clamp(1.8rem, 6vw, 3rem); font-weight: 700;
+    color: #fff; line-height: 1;
+    animation: fadeUp25 0.7s 0.1s ease both;
+  }
+  .s25-hero-sub {
+    font-size: 0.78rem; color: var(--gold);
+    letter-spacing: 0.2em; text-transform: uppercase;
+    margin-top: 6px; font-weight: 600;
+    animation: fadeUp25 0.8s 0.2s ease both;
+  }
+
+  /* Season nav (public) */
+  .s25-nav {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--navy-border);
+    display: flex; justify-content: center;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .s25-tab-btn {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--text-dim); background: none; border: none;
+    padding: 13px 20px; cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  .s25-tab-btn:hover { color: var(--text-primary); }
+  .s25-tab-btn.active { color: var(--saffron); border-bottom-color: var(--saffron); }
+
+  /* Inner panels */
+  .s25-panel { display: none; }
+  .s25-panel.active { display: block; }
+  .s25-content { max-width: 600px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  /* Champion banner */
+  .s25-champ {
+    background: linear-gradient(135deg, #1A0505 0%, #0F0810 100%);
+    border: 1px solid rgba(209,31,47,0.4); border-left: 5px solid #D11F2F;
+    border-radius: var(--radius); padding: 20px 20px;
+    margin-bottom: 16px; position: relative; overflow: hidden;
+    animation: fadeUp25 0.5s ease both;
+  }
+  .s25-champ::before {
+    content: '🏆'; position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%); font-size: 60px; opacity: 0.07; pointer-events: none;
+  }
+  .s25-champ-eye {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.4em;
+    text-transform: uppercase; color: #D11F2F; margin-bottom: 4px;
+  }
+  .s25-champ-name {
+    font-family: 'Tiro Devanagari Sanskrit', serif;
+    font-size: 1.5rem; font-weight: 700; color: #fff; line-height: 1;
+  }
+  .s25-champ-sub { font-size: 0.78rem; color: var(--text-dim); margin-top: 4px; }
+
+  /* Cap cards */
+  .s25-caps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .s25-cap {
+    border-radius: var(--radius-sm); padding: 14px 12px;
+    display: flex; align-items: center; gap: 12px;
+    animation: fadeUp25 0.6s 0.1s ease both;
+  }
+  .s25-cap.orange {
+    background: linear-gradient(135deg, #1A0E06 0%, #100A04 100%);
+    border: 1px solid rgba(255,107,0,0.3); border-left: 4px solid var(--saffron);
+  }
+  .s25-cap.purple {
+    background: linear-gradient(135deg, #110A1A 0%, #0A0610 100%);
+    border: 1px solid rgba(139,92,246,0.3); border-left: 4px solid #8B5CF6;
+  }
+  .s25-cap-photo {
+    width: 52px; height: 52px; border-radius: 50%;
+    background-size: cover; background-position: top center;
+    background-color: var(--navy-border); flex-shrink: 0; border: 2px solid;
+  }
+  .s25-cap.orange .s25-cap-photo {
+    border-color: var(--saffron);
+    background-image: url("Orange Cap.PNG");
+  }
+  .s25-cap.purple .s25-cap-photo {
+    border-color: #8B5CF6;
+    background-image: url("Purple Cap.PNG");
+  }
+  .s25-cap-tag {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.3em;
+    text-transform: uppercase; margin-bottom: 2px;
+  }
+  .s25-cap.orange .s25-cap-tag { color: var(--saffron); }
+  .s25-cap.purple .s25-cap-tag { color: #8B5CF6; }
+  .s25-cap-name { font-size: 0.88rem; font-weight: 700; color: var(--text-primary); line-height: 1.1; }
+  .s25-cap-team { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+
+  /* Performers */
+  .s25-section-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 0.4em;
+    text-transform: uppercase; color: var(--text-dim);
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .s25-section-label::after { content: ''; flex: 1; height: 1px; background: var(--navy-border); }
+
+  .s25-performers { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 20px; }
+  .s25-pc {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm); overflow: hidden;
+    transition: border-color 0.2s; animation: fadeUp25 0.6s ease both;
+  }
+  .s25-pc:hover { border-color: var(--saffron); }
+  .s25-pc:nth-child(1) { animation-delay: 0.0s; }
+  .s25-pc:nth-child(2) { animation-delay: 0.06s; }
+  .s25-pc:nth-child(3) { animation-delay: 0.12s; }
+  .s25-pc:nth-child(4) { animation-delay: 0.18s; }
+  .s25-pc:nth-child(5) { animation-delay: 0.24s; }
+  .s25-pc-rank {
+    background: var(--navy); font-size: 8px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim);
+    padding: 4px 6px; border-bottom: 1px solid var(--navy-border);
+  }
+  .s25-pc:first-child .s25-pc-rank { color: var(--gold); }
+  .s25-pc-photo {
+    width: 100%; aspect-ratio: 3/4;
+    background-size: cover; background-position: top center;
+    background-color: var(--navy);
+  }
+  .s25-photo-shubman   { background-image: url("Shubman.PNG"); }
+  .s25-photo-sudharsan { background-image: url("Sudharsan.PNG"); }
+  .s25-photo-holder    { background-image: url("Holder.PNG"); }
+  .s25-photo-soory     { background-image: url("Orange Cap.PNG"); }
+  .s25-photo-buttler   { background-image: url("Buttler.PNG"); }
+  .s25-pc-info { padding: 8px; }
+  .s25-pc-name { font-size: 0.72rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+  .s25-pc-team { font-size: 0.62rem; color: var(--saffron); margin-top: 2px; }
+
+  /* IPL 2027 locked */
+  .s25-locked {
+    margin-top: 24px; border: 1px dashed var(--navy-border);
+    border-radius: var(--radius); padding: 32px 20px; text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .s25-locked::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(-45deg,
+      transparent 0px, transparent 10px,
+      rgba(255,107,0,0.02) 10px, rgba(255,107,0,0.02) 20px);
+  }
+  .s25-lock-icon { font-size: 2rem; margin-bottom: 8px; opacity: 0.4; }
+  .s25-lock-title { font-size: 1rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; }
+  .s25-lock-sub { font-size: 0.8rem; color: var(--text-dim); max-width: 280px; margin: 0 auto 16px; line-height: 1.6; }
+  .s25-lock-btn {
+    display: inline-block; font-size: 11px; font-weight: 700;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-dim); border: 1px solid var(--navy-border);
+    padding: 9px 22px; border-radius: 20px; cursor: not-allowed; opacity: 0.5;
+  }
+
+  /* Worm (Points Race) panel */
+  .s25-worm-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+  .s25-worm-sub { font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 16px; }
+  .s25-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .s25-leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em; }
+  .s25-leg-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .s25-chart-wrap {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius); padding: 16px; position: relative;
+  }
+  .s25-chart-loading {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; color: var(--text-dim); letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--navy-card); border-radius: var(--radius); z-index: 2; transition: opacity 0.3s;
+  }
+  .s25-chart-loading.hidden { opacity: 0; pointer-events: none; }
+  .s25-sheet-error {
+    background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.25);
+    border-radius: var(--radius-sm); padding: 14px; font-size: 0.78rem; color: #ff6666;
+    text-align: center; display: none; margin-top: 10px;
+  }
+  #s25-wormCanvas { width: 100% !important; }
+
+  .s25-totals { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+  .s25-tot-card {
+    background: var(--navy-card); border: 1px solid var(--navy-border);
+    border-radius: var(--radius-sm); padding: 12px 14px; border-top: 3px solid;
+  }
+  .s25-tot-card:nth-child(1) { border-top-color: #F5C842; }
+  .s25-tot-card:nth-child(2) { border-top-color: #FF6B00; }
+  .s25-tot-card:nth-child(3) { border-top-color: #63b3ed; }
+  .s25-tot-card:nth-child(4) { border-top-color: #68D391; }
+  .s25-tot-name { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px; }
+  .s25-tot-pts { font-family: 'DM Mono', monospace; font-size: 1.6rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
+  .s25-tot-label { font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; }
+  .s25-tot-rank { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; margin-top: 4px; background: var(--gold-dim); color: var(--gold); }
+
+  /* Enter IPL 2026 button at bottom of public screen */
+  .s25-enter-bar {
+    position: sticky; bottom: 0; z-index: 50;
+    background: rgba(10,15,30,0.96); backdrop-filter: blur(12px);
+    border-top: 1px solid var(--navy-border);
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .s25-enter-label { font-size: 0.78rem; color: var(--text-secondary); }
+  .s25-enter-btn {
+    background: var(--saffron); color: #fff;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.05em;
+    padding: 10px 20px; border-radius: var(--radius-sm);
+    border: none; cursor: pointer; white-space: nowrap;
+    transition: background 0.2s;
+  }
+  .s25-enter-btn:hover { background: var(--saffron-light); }
+
+  @keyframes fadeUp25 { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+  @media (max-width: 400px) {
+    .s25-performers { grid-template-columns: repeat(3, 1fr); }
+    .s25-caps { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -1063,6 +1334,142 @@
 <div id="loading">
   <div class="loader-logo">🏏 APL</div>
   <div class="loader-bar"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SEASON 2026 PUBLIC SCREEN (no login needed)
+═══════════════════════════════════════════ -->
+<div id="season2026-screen" style="display:none;">
+
+  <!-- Hero -->
+  <div class="s25-hero">
+    <div class="s25-hero-bg"></div>
+    <div class="s25-hero-stripe"></div>
+    <div class="s25-hero-fade"></div>
+    <div class="s25-hero-content">
+      <span class="s25-pill">IPL Fantasy · Season 2026</span>
+      <h1 class="s25-hero-title">Amgele Premier League</h1>
+      <p class="s25-hero-sub">🏆 Season Wrap · Hall of Champions</p>
+    </div>
+  </div>
+
+  <!-- Public nav tabs -->
+  <nav class="s25-nav">
+    <button class="s25-tab-btn active" onclick="s25Tab('season', this)">🏆 Season</button>
+    <button class="s25-tab-btn" onclick="s25Tab('worm', this)">📈 Points Race</button>
+  </nav>
+
+  <!-- ── SEASON TAB ── -->
+  <div id="s25-panel-season" class="s25-panel active">
+  <div class="s25-content">
+
+    <!-- Champion -->
+    <div class="s25-champ">
+      <p class="s25-champ-eye">🏆 APL Season Champions 2026</p>
+      <p class="s25-champ-name">Royal Challengers Bengaluru</p>
+      <p class="s25-champ-sub">Congratulations — Amgele Premier League 2026 Winners</p>
+    </div>
+
+    <!-- Cap winners -->
+    <div class="s25-caps">
+      <div class="s25-cap orange">
+        <div class="s25-cap-photo"></div>
+        <div>
+          <p class="s25-cap-tag">🧡 Orange Cap</p>
+          <p class="s25-cap-name">Vaibhav Sooryavanshi</p>
+          <p class="s25-cap-team">Rajasthan Royals</p>
+        </div>
+      </div>
+      <div class="s25-cap purple">
+        <div class="s25-cap-photo"></div>
+        <div>
+          <p class="s25-cap-tag">💜 Purple Cap</p>
+          <p class="s25-cap-name">Kagiso Rabada</p>
+          <p class="s25-cap-team">Gujarat Titans</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 performers -->
+    <p class="s25-section-label">Top 5 Fantasy Point Earners</p>
+    <div class="s25-performers">
+      <div class="s25-pc">
+        <div class="s25-pc-rank">#1</div>
+        <div class="s25-pc-photo s25-photo-shubman"></div>
+        <div class="s25-pc-info"><p class="s25-pc-name">Shubman Gill</p><p class="s25-pc-team">GT</p></div>
+      </div>
+      <div class="s25-pc">
+        <div class="s25-pc-rank">#2</div>
+        <div class="s25-pc-photo s25-photo-sudharsan"></div>
+        <div class="s25-pc-info"><p class="s25-pc-name">Sai Sudharsan</p><p class="s25-pc-team">GT</p></div>
+      </div>
+      <div class="s25-pc">
+        <div class="s25-pc-rank">#3</div>
+        <div class="s25-pc-photo s25-photo-holder"></div>
+        <div class="s25-pc-info"><p class="s25-pc-name">Jason Holder</p><p class="s25-pc-team">GT</p></div>
+      </div>
+      <div class="s25-pc">
+        <div class="s25-pc-rank">#4</div>
+        <div class="s25-pc-photo s25-photo-soory"></div>
+        <div class="s25-pc-info"><p class="s25-pc-name">V. Sooryavanshi</p><p class="s25-pc-team">RR</p></div>
+      </div>
+      <div class="s25-pc">
+        <div class="s25-pc-rank">#5</div>
+        <div class="s25-pc-photo s25-photo-buttler"></div>
+        <div class="s25-pc-info"><p class="s25-pc-name">Jos Buttler</p><p class="s25-pc-team">GT</p></div>
+      </div>
+    </div>
+
+    <!-- IPL 2027 locked -->
+    <div class="s25-locked">
+      <div class="s25-lock-icon">🔒</div>
+      <p class="s25-lock-title">IPL 2027 Season</p>
+      <p class="s25-lock-sub">The next season is not yet open. Login and team selection will be available here when IPL 2027 begins.</p>
+      <span class="s25-lock-btn">Coming Soon · IPL 2027</span>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- ── WORM / POINTS RACE TAB ── -->
+  <div id="s25-panel-worm" class="s25-panel">
+  <div class="s25-content">
+
+    <p class="s25-worm-title">Fantasy Points Race</p>
+    <p class="s25-worm-sub">Cumulative match-by-match fantasy points — all four selectors</p>
+
+    <div class="s25-legend">
+      <div class="s25-leg-item"><div class="s25-leg-dot" style="background:#F5C842"></div>Ajith</div>
+      <div class="s25-leg-item"><div class="s25-leg-dot" style="background:#FF6B00"></div>Sid_Pai</div>
+      <div class="s25-leg-item"><div class="s25-leg-dot" style="background:#63b3ed"></div>Vignesh Mallya</div>
+      <div class="s25-leg-item"><div class="s25-leg-dot" style="background:#68D391"></div>Santosh Vernekar</div>
+    </div>
+
+    <div class="s25-chart-wrap">
+      <div class="s25-chart-loading" id="s25-chart-loading">Loading from Google Sheets…</div>
+      <canvas id="s25-wormCanvas" height="360"></canvas>
+    </div>
+    <div class="s25-sheet-error" id="s25-sheet-error">
+      ⚠️ Could not load data. Make sure the sheet is public:<br>
+      <em>Share → Anyone with the link → Viewer</em>
+    </div>
+
+    <div class="s25-totals">
+      <div class="s25-tot-card"><p class="s25-tot-name">Ajith</p><p class="s25-tot-pts" id="s25-tot1">—</p><p class="s25-tot-label">Total Points</p><span class="s25-tot-rank" id="s25-rank1"></span></div>
+      <div class="s25-tot-card"><p class="s25-tot-name">Sid_Pai</p><p class="s25-tot-pts" id="s25-tot2">—</p><p class="s25-tot-label">Total Points</p><span class="s25-tot-rank" id="s25-rank2"></span></div>
+      <div class="s25-tot-card"><p class="s25-tot-name">Vignesh Mallya</p><p class="s25-tot-pts" id="s25-tot3">—</p><p class="s25-tot-label">Total Points</p><span class="s25-tot-rank" id="s25-rank3"></span></div>
+      <div class="s25-tot-card"><p class="s25-tot-name">Santosh Vernekar</p><p class="s25-tot-pts" id="s25-tot4">—</p><p class="s25-tot-label">Total Points</p><span class="s25-tot-rank" id="s25-rank4"></span></div>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- Sticky bottom bar to enter IPL 2026 -->
+  <div class="s25-enter-bar">
+    <span class="s25-enter-label">Playing IPL 2026? Sign in →</span>
+    <button class="s25-enter-btn" onclick="showScreen('login')">Enter IPL 2026 ⚡</button>
+  </div>
+
 </div>
 
 <!-- LOGIN -->
@@ -1481,7 +1888,8 @@ window.onload = async () => {
     state.user = JSON.parse(saved);
     await bootApp();
   } else {
-    showScreen('login');
+    // Show public Season 2026 page first — no login required to view
+    showScreen('season2026');
   }
 };
 
@@ -1548,9 +1956,13 @@ document.addEventListener('keydown', e => {
 // SCREENS & PAGES
 // ============================================================
 function showScreen(name) {
-  document.getElementById('loading').style.display = name === 'loading' ? 'flex' : 'none';
-  document.getElementById('login-screen').style.display = name === 'login' ? 'flex' : 'none';
-  document.getElementById('app').style.display = name === 'app' ? 'flex' : 'none';
+  document.getElementById('loading').style.display        = name === 'loading'    ? 'flex'  : 'none';
+  document.getElementById('login-screen').style.display  = name === 'login'      ? 'flex'  : 'none';
+  document.getElementById('app').style.display           = name === 'app'        ? 'flex'  : 'none';
+  document.getElementById('season2026-screen').style.display = name === 'season2026' ? 'flex' : 'none';
+  if (name === 'season2026') {
+    document.getElementById('season2026-screen').style.flexDirection = 'column';
+  }
 }
 
 function showPage(name) {
@@ -2720,6 +3132,137 @@ function showToast(msg, type = '') {
 }
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/amgele-premier-league/sw.js');
+}
+
+// ============================================================
+// SEASON 2026 PUBLIC PAGE — TAB SWITCH & WORM GRAPH
+// ============================================================
+function s25Tab(name, btn) {
+  document.querySelectorAll('.s25-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.s25-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('s25-panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'worm' && !window._s25WormLoaded) s25LoadWorm();
+}
+
+const S25_SHEET_ID  = '1oMuroTzZvF9i0_MosGjn2NfRTzmWrqW4wfp4cr2OfBc';
+const S25_TAB       = 'Points';
+const S25_SELECTORS = ['Ajith', 'Sid_Pai', 'Vignesh Mallya', 'Santosh Vernekar'];
+const S25_COLORS    = ['#F5C842', '#FF6B00', '#63b3ed', '#68D391'];
+const S25_RANKS     = ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'];
+const S25_TEAM_ABBR = {
+  'Kolkata Knight Riders':'KKR','Royal Challengers Bengaluru':'RCB',
+  'Punjab Kings':'PBKS','Delhi Capitals':'DC','Rajasthan Royals':'RR',
+  'Gujarat Titans':'GT','Sunrisers Hyderabad':'SRH',
+  'Lucknow Super Giants':'LSG','Mumbai Indians':'MI','Chennai Super Kings':'CSK'
+};
+
+function s25Abbr(s) {
+  let out = s;
+  Object.entries(S25_TEAM_ABBR).forEach(([k,v]) => { out = out.replace(k, v); });
+  return out.replace(' vs ', ' v ');
+}
+
+function s25ParseCSV(text) {
+  return text.trim().split('\n').map(line => {
+    const cols = []; let cur = ''; let inQ = false;
+    for (const ch of line) {
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else cur += ch;
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+async function s25LoadWorm() {
+  window._s25WormLoaded = true;
+  const url = `https://docs.google.com/spreadsheets/d/${S25_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(S25_TAB)}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    s25RenderWorm(s25ParseCSV(await res.text()));
+  } catch(e) {
+    console.error(e);
+    document.getElementById('s25-chart-loading').classList.add('hidden');
+    document.getElementById('s25-sheet-error').style.display = 'block';
+  }
+}
+
+function s25RenderWorm(rows) {
+  const header = rows[0];
+  const cols = S25_SELECTORS.map(sel =>
+    header.findIndex(h => h.replace(/"/g,'').toLowerCase().includes(sel.toLowerCase().split(' ')[0]))
+  );
+
+  const labels = [];
+  const running = [0, 0, 0, 0];
+  const series  = [[], [], [], []];
+
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r];
+    const matchName = row[0].replace(/"/g, '');
+    if (!matchName) continue;
+    labels.push(s25Abbr(matchName));
+    cols.forEach((c, i) => {
+      running[i] += c >= 0 ? (parseFloat(row[c]) || 0) : 0;
+      series[i].push(running[i]);
+    });
+  }
+
+  const ctx = document.getElementById('s25-wormCanvas').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: S25_SELECTORS.map((name, i) => ({
+        label: name,
+        data: series[i],
+        borderColor: S25_COLORS[i],
+        backgroundColor: S25_COLORS[i] + '18',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        pointBackgroundColor: S25_COLORS[i],
+        tension: 0.38,
+        fill: false,
+      }))
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#161D30',
+          borderColor: 'rgba(245,200,66,0.25)', borderWidth: 1,
+          titleColor: '#F5C842', bodyColor: '#F0F4FF', padding: 10,
+          callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y} pts` }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          ticks: { color: '#4A566A', font: { family: 'DM Mono', size: 10 }, maxRotation: 50 }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: { color: '#4A566A', font: { family: 'DM Mono', size: 11 }, callback: v => v + ' pts' }
+        }
+      }
+    }
+  });
+
+  // Totals + ranks
+  const ranked = [...running.map((t, i) => ({ i, t }))].sort((a, b) => b.t - a.t);
+  const rankMap = {}; ranked.forEach((r, pos) => rankMap[r.i] = pos);
+  running.forEach((total, i) => {
+    document.getElementById('s25-tot' + (i + 1)).textContent = total;
+    document.getElementById('s25-rank' + (i + 1)).textContent = S25_RANKS[rankMap[i]];
+  });
+
+  document.getElementById('s25-chart-loading').classList.add('hidden');
 }
 </script>
 </body>
