@@ -1077,7 +1077,7 @@
   }
   .s25-hero-bg {
     position: absolute; inset: 0;
-    background-image: url("Champions.png");
+    background-image: url("Champions.PNG");
     background-size: cover; background-position: center 20%;
     filter: brightness(0.35) saturate(1.3);
     transform: scale(1.04); transition: transform 8s ease;
@@ -1188,11 +1188,11 @@
   }
   .s25-cap.orange .s25-cap-photo {
     border-color: var(--saffron);
-    background-image: url("Orange Cap.png");
+    background-image: url("Orange Cap.PNG");
   }
   .s25-cap.purple .s25-cap-photo {
     border-color: #8B5CF6;
-    background-image: url("Purple Cap.png");
+    background-image: url("Purple Cap.PNG");
   }
   .s25-cap-tag {
     font-size: 9px; font-weight: 700; letter-spacing: 0.3em;
@@ -1234,11 +1234,11 @@
     background-size: cover; background-position: top center;
     background-color: var(--navy);
   }
-  .s25-photo-shubman   { background-image: url("Shubman.png"); }
-  .s25-photo-sudharsan { background-image: url("Sudharsan.png"); }
-  .s25-photo-holder    { background-image: url("Holder.png"); }
-  .s25-photo-soory     { background-image: url("Orange Cap.png"); }
-  .s25-photo-buttler   { background-image: url("Buttler.png"); }
+  .s25-photo-shubman   { background-image: url("Shubman.PNG"); }
+  .s25-photo-sudharsan { background-image: url("Sudharsan.PNG"); }
+  .s25-photo-holder    { background-image: url("Holder.PNG"); }
+  .s25-photo-soory     { background-image: url("Orange Cap.PNG"); }
+  .s25-photo-buttler   { background-image: url("Buttler.PNG"); }
   .s25-pc-info { padding: 8px; }
   .s25-pc-name { font-size: 0.72rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
   .s25-pc-team { font-size: 0.62rem; color: var(--saffron); margin-top: 2px; }
@@ -3147,23 +3147,17 @@ function s25Tab(name, btn) {
 
 const S25_SHEET_ID  = '1oMuroTzZvF9i0_MosGjn2NfRTzmWrqW4wfp4cr2OfBc';
 const S25_TAB       = 'Points';
-const S25_SELECTORS = ['Ajith', 'Sid_Pai', 'Vignesh Mallya', 'Santosh Vernekar'];
+
+// Exact usernames as they appear in the sheet's "username" column
+// Order here controls card order in the totals row
+const S25_SELECTORS = ['Ajith_Pai', 'Sid_Pai', 'Vignesh_Mallya', 'Santosh_Vernekar'];
+// Display names (friendly labels on legend & totals cards)
+const S25_DISPLAY   = ['Ajith', 'Sid_Pai', 'Vignesh Mallya', 'Santosh Vernekar'];
 const S25_COLORS    = ['#F5C842', '#FF6B00', '#63b3ed', '#68D391'];
 const S25_RANKS     = ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'];
-const S25_TEAM_ABBR = {
-  'Kolkata Knight Riders':'KKR','Royal Challengers Bengaluru':'RCB',
-  'Punjab Kings':'PBKS','Delhi Capitals':'DC','Rajasthan Royals':'RR',
-  'Gujarat Titans':'GT','Sunrisers Hyderabad':'SRH',
-  'Lucknow Super Giants':'LSG','Mumbai Indians':'MI','Chennai Super Kings':'CSK'
-};
-
-function s25Abbr(s) {
-  let out = s;
-  Object.entries(S25_TEAM_ABBR).forEach(([k,v]) => { out = out.replace(k, v); });
-  return out.replace(' vs ', ' v ');
-}
 
 function s25ParseCSV(text) {
+  // Robust CSV parser — handles quoted fields
   return text.trim().split('\n').map(line => {
     const cols = []; let cur = ''; let inQ = false;
     for (const ch of line) {
@@ -3184,48 +3178,83 @@ async function s25LoadWorm() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     s25RenderWorm(s25ParseCSV(await res.text()));
   } catch(e) {
-    console.error(e);
+    console.error('Worm fetch error:', e);
     document.getElementById('s25-chart-loading').classList.add('hidden');
     document.getElementById('s25-sheet-error').style.display = 'block';
   }
 }
 
 function s25RenderWorm(rows) {
-  const header = rows[0];
-  const cols = S25_SELECTORS.map(sel =>
-    header.findIndex(h => h.replace(/"/g,'').toLowerCase().includes(sel.toLowerCase().split(' ')[0]))
-  );
+  // Sheet is LONG format: matchId | username | totalPoints
+  // Find column indices from header row
+  const header = rows[0].map(h => h.replace(/"/g, '').trim().toLowerCase());
+  const colMatch = header.findIndex(h => h.includes('matchid') || h.includes('match'));
+  const colUser  = header.findIndex(h => h.includes('username') || h.includes('user'));
+  const colPts   = header.findIndex(h => h.includes('totalpoints') || h.includes('points') || h.includes('pts'));
 
-  const labels = [];
-  const running = [0, 0, 0, 0];
-  const series  = [[], [], [], []];
-
-  for (let r = 1; r < rows.length; r++) {
-    const row = rows[r];
-    const matchName = row[0].replace(/"/g, '');
-    if (!matchName) continue;
-    labels.push(s25Abbr(matchName));
-    cols.forEach((c, i) => {
-      running[i] += c >= 0 ? (parseFloat(row[c]) || 0) : 0;
-      series[i].push(running[i]);
-    });
+  if (colMatch < 0 || colUser < 0 || colPts < 0) {
+    console.error('Could not find expected columns. Header:', rows[0]);
+    document.getElementById('s25-chart-loading').classList.add('hidden');
+    document.getElementById('s25-sheet-error').style.display = 'block';
+    return;
   }
 
+  // Step 1: collect all unique matchIds in order of first appearance
+  const matchOrder = [];
+  const matchSeen  = new Set();
+
+  // Step 2: build a lookup: matchId → { username → pts }
+  const matchData  = {}; // { 'M037': { 'Ajith_Pai': 612.5, 'Sid_Pai': 542, ... }, ... }
+
+  for (let r = 1; r < rows.length; r++) {
+    const row      = rows[r];
+    const matchId  = row[colMatch] ? row[colMatch].replace(/"/g, '').trim() : '';
+    const username = row[colUser]  ? row[colUser].replace(/"/g, '').trim()  : '';
+    const pts      = parseFloat((row[colPts] || '0').replace(/"/g, '')) || 0;
+
+    if (!matchId || !username) continue;
+
+    if (!matchSeen.has(matchId)) {
+      matchSeen.add(matchId);
+      matchOrder.push(matchId);
+      matchData[matchId] = {};
+    }
+    matchData[matchId][username] = pts;
+  }
+
+  // Step 3: build cumulative series per selector across ordered matches
+  const running = S25_SELECTORS.map(() => 0);
+  const series  = S25_SELECTORS.map(() => []);
+
+  matchOrder.forEach(matchId => {
+    S25_SELECTORS.forEach((sel, i) => {
+      // If selector didn't pick for this match, they score 0
+      running[i] += matchData[matchId][sel] || 0;
+      series[i].push(running[i]);
+    });
+  });
+
+  // Step 4: render chart
   const ctx = document.getElementById('s25-wormCanvas').getContext('2d');
+
+  // Compute a sensible Y max (round up to nearest 500 above max)
+  const allVals = series.flat();
+  const yMax = Math.ceil(Math.max(...allVals) / 500) * 500;
+
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels,
-      datasets: S25_SELECTORS.map((name, i) => ({
+      labels: matchOrder,   // e.g. M037, M038, …
+      datasets: S25_DISPLAY.map((name, i) => ({
         label: name,
         data: series[i],
         borderColor: S25_COLORS[i],
         backgroundColor: S25_COLORS[i] + '18',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointHoverRadius: 6,
+        borderWidth: 2.5,
+        pointRadius: 4,
+        pointHoverRadius: 7,
         pointBackgroundColor: S25_COLORS[i],
-        tension: 0.38,
+        tension: 0.35,
         fill: false,
       }))
     },
@@ -3238,27 +3267,58 @@ function s25RenderWorm(rows) {
           backgroundColor: '#161D30',
           borderColor: 'rgba(245,200,66,0.25)', borderWidth: 1,
           titleColor: '#F5C842', bodyColor: '#F0F4FF', padding: 10,
-          callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y} pts` }
+          titleFont: { family: 'DM Mono', size: 12 },
+          callbacks: {
+            title: items => items[0].label,          // e.g. "M037"
+            label: c => ` ${c.dataset.label}: ${c.parsed.y.toLocaleString()} pts`
+          }
         }
       },
       scales: {
         x: {
           grid: { color: 'rgba(255,255,255,0.04)' },
-          ticks: { color: '#4A566A', font: { family: 'DM Mono', size: 10 }, maxRotation: 50 }
+          ticks: {
+            color: '#4A566A',
+            font: { family: 'DM Mono', size: 10 },
+            maxRotation: 45,
+            autoSkip: true,
+            maxTicksLimit: 20,
+          },
+          title: {
+            display: true,
+            text: 'Match',
+            color: '#4A566A',
+            font: { family: 'DM Sans', size: 11 }
+          }
         },
         y: {
+          min: 0,
+          max: yMax,
           grid: { color: 'rgba(255,255,255,0.05)' },
-          ticks: { color: '#4A566A', font: { family: 'DM Mono', size: 11 }, callback: v => v + ' pts' }
+          ticks: {
+            color: '#4A566A',
+            font: { family: 'DM Mono', size: 11 },
+            callback: v => v.toLocaleString() + ' pts',
+            stepSize: 500,
+          },
+          title: {
+            display: true,
+            text: 'Cumulative Fantasy Points',
+            color: '#4A566A',
+            font: { family: 'DM Sans', size: 11 }
+          }
         }
       }
     }
   });
 
-  // Totals + ranks
-  const ranked = [...running.map((t, i) => ({ i, t }))].sort((a, b) => b.t - a.t);
-  const rankMap = {}; ranked.forEach((r, pos) => rankMap[r.i] = pos);
-  running.forEach((total, i) => {
-    document.getElementById('s25-tot' + (i + 1)).textContent = total;
+  // Step 5: fill totals cards + rankings
+  const ranked = running.map((t, i) => ({ i, t })).sort((a, b) => b.t - a.t);
+  const rankMap = {};
+  ranked.forEach((r, pos) => rankMap[r.i] = pos);
+
+  S25_SELECTORS.forEach((_, i) => {
+    document.getElementById('s25-tot' + (i + 1)).textContent = running[i].toLocaleString();
     document.getElementById('s25-rank' + (i + 1)).textContent = S25_RANKS[rankMap[i]];
   });
 
