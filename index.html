@@ -1077,7 +1077,7 @@
   }
   .s25-hero-bg {
     position: absolute; inset: 0;
-    background-image: url("Champions.png");
+    background-image: url("Champions.PNG");
     background-size: cover; background-position: center 20%;
     filter: brightness(0.35) saturate(1.3);
     transform: scale(1.04); transition: transform 8s ease;
@@ -1188,11 +1188,11 @@
   }
   .s25-cap.orange .s25-cap-photo {
     border-color: var(--saffron);
-    background-image: url("Orange Cap.png");
+    background-image: url("Orange Cap.PNG");
   }
   .s25-cap.purple .s25-cap-photo {
     border-color: #8B5CF6;
-    background-image: url("Purple Cap.png");
+    background-image: url("Purple Cap.PNG");
   }
   .s25-cap-tag {
     font-size: 9px; font-weight: 700; letter-spacing: 0.3em;
@@ -1234,11 +1234,11 @@
     background-size: cover; background-position: top center;
     background-color: var(--navy);
   }
-  .s25-photo-shubman   { background-image: url("Shubman.png"); }
-  .s25-photo-sudharsan { background-image: url("Sudharsan.png"); }
-  .s25-photo-holder    { background-image: url("Holder.png"); }
-  .s25-photo-soory     { background-image: url("Orange Cap.png"); }
-  .s25-photo-buttler   { background-image: url("Buttler.png"); }
+  .s25-photo-shubman   { background-image: url("Shubman.PNG"); }
+  .s25-photo-sudharsan { background-image: url("Sudharsan.PNG"); }
+  .s25-photo-holder    { background-image: url("Holder.PNG"); }
+  .s25-photo-soory     { background-image: url("Orange Cap.PNG"); }
+  .s25-photo-buttler   { background-image: url("Buttler.PNG"); }
   .s25-pc-info { padding: 8px; }
   .s25-pc-name { font-size: 0.72rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
   .s25-pc-team { font-size: 0.62rem; color: var(--saffron); margin-top: 2px; }
@@ -3142,119 +3142,47 @@ function s25Tab(name, btn) {
   document.querySelectorAll('.s25-tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('s25-panel-' + name).classList.add('active');
   btn.classList.add('active');
-  if (name === 'worm' && !window._s25WormLoaded) s25LoadWorm();
+  if (name === 'worm' && !window._s25WormLoaded) s25RenderWorm();
 }
 
-const S25_SHEET_ID  = '1oMuroTzZvF9i0_MosGjn2NfRTzmWrqW4wfp4cr2OfBc';
-const S25_TAB       = 'Points';
+// ── Pre-computed cumulative points (M036 → M069, sorted numerically) ──
+const S25_LABELS = ['M036','M037','M038','M039','M040','M041','M042','M043','M044','M045','M046','M047','M048','M049','M050','M051','M052','M053','M054','M055','M056','M057','M058','M059','M060','M061','M062','M063','M064','M065','M066','M067','M068','M069'];
 
-// Exact usernames as they appear in the sheet's "username" column
-// Order here controls card order in the totals row
-const S25_SELECTORS = ['Ajith_Pai', 'Sid_Pai', 'Vignesh_Mallya', 'Santosh_Vernekar'];
-// Display names (friendly labels on legend & totals cards)
-const S25_DISPLAY   = ['Ajith', 'Sid_Pai', 'Vignesh Mallya', 'Santosh Vernekar'];
-const S25_COLORS    = ['#F5C842', '#FF6B00', '#63b3ed', '#68D391'];
-const S25_RANKS     = ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'];
+const S25_SERIES = [
+  // Ajith  (Total: 16,344)
+  [448,1060.5,1566,1833.5,2313.5,2857,3484,3855,4531,5090.5,5436.5,5964,6259.5,6883.5,7334,7334,7712.5,8085,8456.5,9082.5,9577.5,9577.5,10134,10859,11303.5,12073,12620.5,13016,13516.5,13919.5,14486,15200,15903,16344],
+  // Sid_Pai  (Total: 17,386)
+  [536,977.5,977.5,977.5,1657.5,2215.5,2616.5,3011.5,3578.5,4192.5,4492,5169.5,5650,6100,6551,7062,7599.5,8059,8444.5,9244,9561.5,10281,10754.5,11557,11911.5,12580.5,13159,13871,14375,15005.5,15612,16186.5,16831,17386],
+  // Vignesh Mallya  (Total: 12,967.5)
+  [0,542.5,1157,1611,1611,2072,2688,2986,2986,3392,3646.5,4279,4776,5226,5544,5544,6221.5,6661,7071.5,7071.5,7501.5,8089.5,8628,9291.5,9291.5,9936.5,10459.5,10459.5,10459.5,10459.5,11081,11722,12537.5,12967.5],
+  // Santosh Vernekar  (Total: 15,344)
+  [379,830.5,1372,1656.5,2059.5,2477.5,2807,3179,3711.5,4271.5,4577,5090,5357.5,5872.5,5872.5,6260.5,6849,7310.5,7480,7962,8303.5,8979.5,9508,10223.5,10535,11370,11370,11928,12367,12821.5,13519,14300,14873,15344],
+];
 
-function s25ParseCSV(text) {
-  // Robust CSV parser — handles quoted fields
-  return text.trim().split('\n').map(line => {
-    const cols = []; let cur = ''; let inQ = false;
-    for (const ch of line) {
-      if (ch === '"') { inQ = !inQ; }
-      else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
-      else cur += ch;
-    }
-    cols.push(cur.trim());
-    return cols;
-  });
-}
+const S25_DISPLAY  = ['Ajith', 'Sid_Pai', 'Vignesh Mallya', 'Santosh Vernekar'];
+const S25_TOTALS   = [16344, 17386, 12967.5, 15344];
+const S25_COLORS   = ['#F5C842', '#FF6B00', '#63b3ed', '#68D391'];
+const S25_RANKS    = ['🥇 1st', '🥈 2nd', '🥉 3rd', '4th'];
 
-async function s25LoadWorm() {
+function s25RenderWorm() {
   window._s25WormLoaded = true;
-  const url = `https://docs.google.com/spreadsheets/d/${S25_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(S25_TAB)}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    s25RenderWorm(s25ParseCSV(await res.text()));
-  } catch(e) {
-    console.error('Worm fetch error:', e);
-    document.getElementById('s25-chart-loading').classList.add('hidden');
-    document.getElementById('s25-sheet-error').style.display = 'block';
-  }
-}
 
-function s25RenderWorm(rows) {
-  // Sheet is LONG format: matchId | username | totalPoints
-  // Find column indices from header row
-  const header = rows[0].map(h => h.replace(/"/g, '').trim().toLowerCase());
-  const colMatch = header.findIndex(h => h.includes('matchid') || h.includes('match'));
-  const colUser  = header.findIndex(h => h.includes('username') || h.includes('user'));
-  const colPts   = header.findIndex(h => h.includes('totalpoints') || h.includes('points') || h.includes('pts'));
-
-  if (colMatch < 0 || colUser < 0 || colPts < 0) {
-    console.error('Could not find expected columns. Header:', rows[0]);
-    document.getElementById('s25-chart-loading').classList.add('hidden');
-    document.getElementById('s25-sheet-error').style.display = 'block';
-    return;
-  }
-
-  // Step 1: collect all unique matchIds in order of first appearance
-  const matchOrder = [];
-  const matchSeen  = new Set();
-
-  // Step 2: build a lookup: matchId → { username → pts }
-  const matchData  = {}; // { 'M037': { 'Ajith_Pai': 612.5, 'Sid_Pai': 542, ... }, ... }
-
-  for (let r = 1; r < rows.length; r++) {
-    const row      = rows[r];
-    const matchId  = row[colMatch] ? row[colMatch].replace(/"/g, '').trim() : '';
-    const username = row[colUser]  ? row[colUser].replace(/"/g, '').trim()  : '';
-    const pts      = parseFloat((row[colPts] || '0').replace(/"/g, '')) || 0;
-
-    if (!matchId || !username) continue;
-
-    if (!matchSeen.has(matchId)) {
-      matchSeen.add(matchId);
-      matchOrder.push(matchId);
-      matchData[matchId] = {};
-    }
-    matchData[matchId][username] = pts;
-  }
-
-  // Step 3: build cumulative series per selector across ordered matches
-  const running = S25_SELECTORS.map(() => 0);
-  const series  = S25_SELECTORS.map(() => []);
-
-  matchOrder.forEach(matchId => {
-    S25_SELECTORS.forEach((sel, i) => {
-      // If selector didn't pick for this match, they score 0
-      running[i] += matchData[matchId][sel] || 0;
-      series[i].push(running[i]);
-    });
-  });
-
-  // Step 4: render chart
   const ctx = document.getElementById('s25-wormCanvas').getContext('2d');
-
-  // Compute a sensible Y max (round up to nearest 500 above max)
-  const allVals = series.flat();
-  const yMax = Math.ceil(Math.max(...allVals) / 500) * 500;
 
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: matchOrder,   // e.g. M037, M038, …
+      labels: S25_LABELS,
       datasets: S25_DISPLAY.map((name, i) => ({
         label: name,
-        data: series[i],
+        data: S25_SERIES[i],
         borderColor: S25_COLORS[i],
         backgroundColor: S25_COLORS[i] + '18',
         borderWidth: 2.5,
-        pointRadius: 4,
+        pointRadius: 3,
         pointHoverRadius: 7,
         pointBackgroundColor: S25_COLORS[i],
-        tension: 0.35,
+        tension: 0.3,
         fill: false,
       }))
     },
@@ -3266,11 +3194,17 @@ function s25RenderWorm(rows) {
         tooltip: {
           backgroundColor: '#161D30',
           borderColor: 'rgba(245,200,66,0.25)', borderWidth: 1,
-          titleColor: '#F5C842', bodyColor: '#F0F4FF', padding: 10,
-          titleFont: { family: 'DM Mono', size: 12 },
+          titleColor: '#F5C842', bodyColor: '#F0F4FF', padding: 12,
+          titleFont: { family: 'DM Mono', size: 12, weight: 'bold' },
+          bodyFont: { family: 'DM Mono', size: 12 },
           callbacks: {
-            title: items => items[0].label,          // e.g. "M037"
-            label: c => ` ${c.dataset.label}: ${c.parsed.y.toLocaleString()} pts`
+            title: items => 'Match ' + items[0].label,
+            label: c => {
+              const prev = c.dataIndex > 0 ? S25_SERIES[c.datasetIndex][c.dataIndex - 1] : 0;
+              const gained = c.parsed.y - prev;
+              const gainStr = gained > 0 ? ` (+${gained.toLocaleString()})` : gained === 0 ? ' (DNP)' : '';
+              return ` ${c.dataset.label}: ${c.parsed.y.toLocaleString()} pts${gainStr}`;
+            }
           }
         }
       },
@@ -3282,48 +3216,57 @@ function s25RenderWorm(rows) {
             font: { family: 'DM Mono', size: 10 },
             maxRotation: 45,
             autoSkip: true,
-            maxTicksLimit: 20,
+            maxTicksLimit: 34,
           },
           title: {
             display: true,
             text: 'Match',
-            color: '#4A566A',
-            font: { family: 'DM Sans', size: 11 }
+            color: '#6A7A8A',
+            font: { family: 'DM Sans', size: 11 },
+            padding: { top: 8 }
           }
         },
         y: {
           min: 0,
-          max: yMax,
+          max: 18000,
           grid: { color: 'rgba(255,255,255,0.05)' },
           ticks: {
             color: '#4A566A',
             font: { family: 'DM Mono', size: 11 },
-            callback: v => v.toLocaleString() + ' pts',
-            stepSize: 500,
+            stepSize: 2000,
+            callback: v => (v / 1000).toFixed(0) + 'k pts'
           },
           title: {
             display: true,
             text: 'Cumulative Fantasy Points',
-            color: '#4A566A',
-            font: { family: 'DM Sans', size: 11 }
+            color: '#6A7A8A',
+            font: { family: 'DM Sans', size: 11 },
+            padding: { bottom: 8 }
           }
         }
       }
     }
   });
 
-  // Step 5: fill totals cards + rankings
-  const ranked = running.map((t, i) => ({ i, t })).sort((a, b) => b.t - a.t);
+  // Fill totals + rankings
+  const ranked = S25_TOTALS.map((t, i) => ({ i, t })).sort((a, b) => b.t - a.t);
   const rankMap = {};
   ranked.forEach((r, pos) => rankMap[r.i] = pos);
 
-  S25_SELECTORS.forEach((_, i) => {
-    document.getElementById('s25-tot' + (i + 1)).textContent = running[i].toLocaleString();
+  S25_DISPLAY.forEach((_, i) => {
+    document.getElementById('s25-tot' + (i + 1)).textContent = S25_TOTALS[i].toLocaleString();
     document.getElementById('s25-rank' + (i + 1)).textContent = S25_RANKS[rankMap[i]];
   });
 
   document.getElementById('s25-chart-loading').classList.add('hidden');
 }
+
+// Remove the now-unused fetch functions (data is hardcoded above)
+
+
+// (Data hardcoded above — no sheet fetch needed for Season 2026)
+
+// (Data hardcoded — Season 2026 complete)
 </script>
 </body>
 </html>
